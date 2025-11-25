@@ -1,0 +1,25 @@
+{
+  "name": "nikhil-portfolio",
+  "version": "0.0.0",
+  "private": true,
+  "homepage": "https://nikhil3112.github.io/nikhil-portfolio",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "gh-pages -d dist"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "gh-pages": "^6.0.0",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.4.7",
+    "vite": "^5.0.0"
+  }
+}
