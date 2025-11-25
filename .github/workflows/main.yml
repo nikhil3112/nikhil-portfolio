@@ -1,18 +1,18 @@
-name: Deploy React Vite site to GitHub Pages
+name: GitHub Pages Deploy
 
 on:
   push:
     branches:
-      - main  # आपकी main branch का नाम अगर master है तो master लिखें
+      - master  # आपकी main branch, अगर main है तो उसे यहाँ लिखें
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
@@ -20,10 +20,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build
+      - name: Fix vite permissions
+        run: chmod +x ./node_modules/.bin/vite
+
+      - name: Build project
         run: npm run build
 
-      - name: Deploy
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
