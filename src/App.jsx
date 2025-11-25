@@ -102,7 +102,7 @@ export default function App() {
             optimizing system performance. My technical proficiency in PHP, Laravel, Python,
             JavaScript, Node.js, React.js and AWS, coupled with my problem-solving skills and
             team collaboration abilities, have led to significant improvements in system efficiency
-            and user engagement. 
+            and user engagement.
 
             <br /><br />
             I have worked with many technologies such as:
