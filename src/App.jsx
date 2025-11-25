@@ -84,7 +84,7 @@ export default function App() {
 
         <div className="flex flex-col md:flex-row items-center gap-10">
           {/* PROFILE IMAGE CIRCLE */}
-          <div className="w-48 aspect-square rounded-full overflow-hidden border-4 border-gray-600 shadow-lg">
+          <div className="aspect-square rounded-full overflow-hidden border-4 border-gray-600 shadow-lg">
             <img
               src="https://avatars.githubusercontent.com/u/55823957"
               alt="Nikhil Anande"
