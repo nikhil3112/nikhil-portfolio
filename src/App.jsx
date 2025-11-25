@@ -95,13 +95,14 @@ export default function App() {
 
           <p className="text-left opacity-90 leading-relaxed text-sm">
             I am a Sr. Full Stack Developer with over 7+ years of experience in web 
-            development, specializing in PHP, Laravel, and RESTful API integrations. I have a 
-            proven track record in designing, developing, and managing web applications, 
-            utilizing my skills in front-end and back- end technologies to deliver high-quality 
-            solutions. My expertise includes working with various APIs and optimizing system 
-            performance. My technical proficiency in PHP, Laravel, JavaScript, and AWS, coupled 
-            with my problem-solving skills and team collaboration abilities, have led to significant 
-            improvements in system efficiency and user engagement. 
+            development, specializing in PHP, Laravel, Python and RESTful API integrations. I 
+            have a proven track record in designing, developing, and managing web 
+            applications, utilizing my skills in front-end and back- end technologies to deliver 
+            high-quality solutions. My expertise includes working with various APIs and 
+            optimizing system performance. My technical proficiency in PHP, Laravel, Python, 
+            JavaScript, Node.js, React.js and AWS, coupled with my problem-solving skills and 
+            team collaboration abilities, have led to significant improvements in system efficiency 
+            and user engagement.
 
             <br /><br />
             I have worked with many technologies such as:
