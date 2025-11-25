@@ -113,6 +113,7 @@ export default function App() {
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>MySQL</span>
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>PostgreSQL</span>
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>AWS</span>
+            <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>Python</span>
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>Node.js</span>
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>React.js</span>
 
