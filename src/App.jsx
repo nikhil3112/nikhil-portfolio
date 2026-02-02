@@ -42,6 +42,37 @@ export default function App() {
         "Employer & admin dashboards",
       ],
     },
+    {
+      title: "Invoice to Excel Automation (OCR + ERP)",
+      description:
+        "Automation system that extracts line-item data from purchase invoice PDFs or images and converts them into ERP-ready Excel files for Logic ERP import.",
+      tech: [
+        "PHP",
+        "Tesseract OCR",
+        "PhpSpreadsheet",
+        "React Native",
+        "GD / Imagick"
+      ],
+      highlights: [
+        "Invoice PDF & image parsing using OCR",
+        "Line-item extraction (HSN, Qty, GST, Amount)",
+        "Auto-generated Excel in ERP import format",
+        "Mobile app for scanning & uploading invoices"
+      ],
+    },
+    {
+      title: "Super Market Management System",
+      description:
+        "Full-stack supermarket management platform with product, order, customer, and payment workflows.",
+      tech: ["Laravel", "Node.js", "React", "MySQL", "Stripe"],
+      highlights: [
+        "Product & category management",
+        "Customer authentication & cart flow",
+        "Order management for admin",
+        "Stripe payment integration"
+      ],
+    }
+
   ];
 
 
