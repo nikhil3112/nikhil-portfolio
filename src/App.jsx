@@ -4,7 +4,7 @@ import { SunIcon, MoonIcon } from "@heroicons/react/24/solid";
 
 export default function App() {
   const [dark, setDark] = useState(true);
-  const [openProject, setOpenProject] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const skillBox =
     "px-3 py-1 rounded-md text-sm font-medium inline-block mr-2 mb-2 shadow";
@@ -13,67 +13,128 @@ export default function App() {
     {
       title: "Enterprise HRMS & Payroll System",
       description:
-        "Enterprise-grade HRMS platform handling employee lifecycle, attendance, payroll processing, loan & advance management, and accounting workflows.",
+        "Enterprise-grade HRMS platform designed to manage complete employee lifecycle, payroll processing, loan & advance management, and accounting workflows for medium to large organizations.",
       tech: ["Laravel", "React", "MySQL", "REST APIs", "AWS"],
       highlights: [
         "Automated salary processing (PF, ESIC, TDS)",
-        "Loan & advance with EMI deduction",
+        "Loan & advance management with EMI deduction",
         "Employee Self-Service (ESS) portal",
+        "Attendance, leave & shift management",
+      ],
+      responsibilities: [
+        "Designed scalable HRMS architecture and database schema",
+        "Developed payroll engine with statutory calculations",
+        "Implemented secure REST APIs and role-based access control",
+        "Optimized payroll and reporting queries for large datasets",
+      ],
+      impact: [
+        "Reduced manual payroll effort significantly",
+        "Improved salary accuracy and compliance",
+        "Enabled centralized HR and payroll operations",
       ],
     },
+
     {
       title: "Learning Management System (LMS)",
       description:
-        "Scalable LMS platform for corporate training with course management, assessments, progress tracking, and certification workflows.",
+        "Scalable Learning Management System for corporate training and internal employee skill development with progress tracking and certification workflows.",
       tech: ["Laravel", "MySQL", "AJAX", "REST APIs"],
       highlights: [
         "Course & content management",
         "Assessment & certification system",
+        "User progress tracking",
         "Admin analytics dashboard",
       ],
+      responsibilities: [
+        "Developed backend modules for courses, lessons, and assessments",
+        "Implemented progress tracking and completion logic",
+        "Built admin dashboards and reporting features",
+        "Ensured secure access control for learners and admins",
+      ],
+      impact: [
+        "Centralized employee learning and training",
+        "Improved course completion visibility",
+        "Reduced dependency on manual training tracking",
+      ],
     },
+
     {
       title: "Job & Recruitment Portal",
       description:
-        "Recruitment management system enabling job posting, candidate applications, resume uploads, and hiring workflows.",
+        "Recruitment management system enabling organizations to manage job postings, candidate applications, resume uploads, and hiring workflows efficiently.",
       tech: ["Laravel", "MySQL", "HTML", "CSS", "JavaScript"],
       highlights: [
         "Role-based access control",
         "Candidate application tracking",
+        "Resume upload & parsing",
         "Employer & admin dashboards",
       ],
+      responsibilities: [
+        "Designed recruitment workflow and application lifecycle",
+        "Built secure resume upload and storage system",
+        "Implemented admin and employer dashboards",
+        "Optimized database queries for candidate searches",
+      ],
+      impact: [
+        "Streamlined hiring operations",
+        "Reduced recruitment turnaround time",
+        "Improved candidate tracking and visibility",
+      ],
     },
+
     {
       title: "Invoice to Excel Automation (OCR + ERP)",
       description:
-        "Automation system that extracts line-item data from purchase invoice PDFs or images and converts them into ERP-ready Excel files for Logic ERP import.",
+        "Automation system that extracts structured line-item data from invoice PDFs or images and converts it into ERP-ready Excel files for seamless accounting imports.",
       tech: [
         "PHP",
         "Tesseract OCR",
         "PhpSpreadsheet",
         "React Native",
-        "GD / Imagick"
+        "GD / Imagick",
       ],
       highlights: [
         "Invoice PDF & image parsing using OCR",
         "Line-item extraction (HSN, Qty, GST, Amount)",
-        "Auto-generated Excel in ERP import format",
-        "Mobile app for scanning & uploading invoices"
+        "ERP-ready Excel generation",
+        "Mobile app for scanning & uploading invoices",
+      ],
+      responsibilities: [
+        "Implemented OCR pipeline for invoice text extraction",
+        "Developed intelligent parsing logic for line items",
+        "Automated Excel generation using ERP templates",
+        "Built mobile-to-backend integration for uploads",
+      ],
+      impact: [
+        "Reduced manual data entry for accounting teams",
+        "Improved invoice processing speed and accuracy",
+        "Enabled seamless ERP data imports",
       ],
     },
+
     {
       title: "Super Market Management System",
       description:
-        "Full-stack supermarket management platform with product, order, customer, and payment workflows.",
+        "Full-stack supermarket management platform supporting product management, customer orders, inventory tracking, and online payments.",
       tech: ["Laravel", "Node.js", "React", "MySQL", "Stripe"],
       highlights: [
         "Product & category management",
         "Customer authentication & cart flow",
         "Order management for admin",
-        "Stripe payment integration"
+        "Stripe payment integration",
       ],
-    }
-
+      responsibilities: [
+        "Developed backend APIs for products, orders, and users",
+        "Implemented authentication and cart workflows",
+        "Integrated Stripe for secure online payments",
+        "Built admin dashboards for order and inventory management",
+      ],
+      impact: [
+        "Enabled digital ordering for retail operations",
+        "Improved order tracking and management",
+        "Provided scalable foundation for e-commerce growth",
+      ],
+    },
   ];
 
 
@@ -163,7 +224,7 @@ export default function App() {
 
 
           <p className="text-left opacity-90 leading-relaxed text-sm">
-            Senior Full Stack Developer with 7+ years of experience building
+            Senior Full Stack Developer with 8+ years of experience building
             enterprise-grade web applications. I specialize in HRMS, Payroll,
             SaaS platforms, and API-driven systems using PHP (Laravel), Node.js,
             React, and cloud technologies.
@@ -292,66 +353,129 @@ export default function App() {
         </div>
       </section>
 
-      {/* PROJECTS */}
-      <section className="max-w-5xl mx-auto mt-20 text-center">
-        <h2 className="text-2xl font-semibold mb-3 tracking-wide">Projects</h2>
-        <hr className="border-gray-600 mb-10" />
-      
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+      {/* PROJECTS GRID */}
+      <section className="max-w-5xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-6 text-center">Projects</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {projects.map((project, index) => (
             <div
               key={index}
+              onClick={() => setSelectedProject(project)}
               className={
-                "p-6 rounded-xl border shadow transition " +
-                (dark ? "border-gray-700 bg-[#151515]" : "border-gray-300 bg-white")
+                "p-6 rounded-xl border shadow cursor-pointer transition hover:scale-[1.02] " +
+                (dark
+                  ? "border-gray-700 bg-[#151515]"
+                  : "border-gray-300 bg-white")
               }
             >
-              {/* TITLE */}
-              <h3
-                onClick={() =>
-                  setOpenProject(openProject === index ? null : index)
-                }
-                className="text-xl font-bold mb-2 cursor-pointer flex justify-between items-center"
-              >
-                {project.title}
-                <span className="text-sm opacity-60">
-                  {openProject === index ? "−" : "+"}
-                </span>
-              </h3>
-            
-              {/* COLLAPSIBLE CONTENT */}
-              {openProject === index && (
-                <div className="mt-4 animate-fadeIn">
-                  <p className="text-sm opacity-80 mb-4 leading-relaxed">
-                    {project.description}
-                  </p>
-            
-                  <ul className="list-disc ml-5 text-sm opacity-80 mb-4">
-                    {project.highlights.map((point, i) => (
-                      <li key={i}>{point}</li>
-                    ))}
-                  </ul>
-            
-                  <div className="mt-3">
-                    {project.tech.map((tech, i) => (
-                      <span
-                        key={i}
-                        className={
-                          skillBox +
-                          (dark ? " bg-white text-black" : " bg-black text-white")
-                        }
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+              <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+              <p className="text-sm opacity-80 mb-3">
+                {project.description.slice(0, 250)}...
+              </p>
 
+              {project.tech.slice(0, 3).map((tech, i) => (
+                <span
+                  key={i}
+                  className={
+                    skillBox +
+                    (dark ? " bg-white text-black" : " bg-black text-white")
+                  }
+                >
+                  {tech}
+                </span>
+              ))}
+              
+            </div>
           ))}
         </div>
       </section>
+
+      {/* FULL SCREEN PROJECT VIEW */}
+      {selectedProject && (
+        <div
+          className={
+            "fixed inset-0 z-50 overflow-y-auto px-10 py-12 transition " +
+            (dark ? "bg-[#0f0f0f] text-white" : "bg-white text-black")
+          }
+        >
+          <div className="max-w-6xl mx-auto min-h-screen">
+            
+            {/* HEADER */}
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h2 className="text-4xl font-bold mb-2">
+                  {selectedProject.title}
+                </h2>
+                <p className="opacity-70 text-sm">
+                  Detailed project overview, features, and technology stack
+                </p>
+              </div>
+
+              <button
+                onClick={() => setSelectedProject(null)}
+                className="px-4 py-2 border rounded hover:bg-gray-200 hover:text-black transition"
+              >
+                ✕ 
+              </button>
+            </div>
+
+            {/* DESCRIPTION */}
+            <section className="mb-10">
+              <h3 className="text-2xl font-semibold mb-3">Overview</h3>
+              <p className="opacity-90 leading-relaxed text-base">
+                {selectedProject.description}
+              </p>
+            </section>
+
+            {/* FEATURES */}
+            <section className="mb-10">
+              <h3 className="text-2xl font-semibold mb-4">Key Features</h3>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-disc ml-6 opacity-90">
+                {selectedProject.highlights.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </section>
+
+            {/* TECH STACK */}
+            <section className="mb-10">
+              <h3 className="text-2xl font-semibold mb-4">Technology Stack</h3>
+              <div>
+                {selectedProject.tech.map((tech, i) => (
+                  <span
+                    key={i}
+                    className={
+                      skillBox +
+                      (dark ? " bg-white text-black" : " bg-black text-white")
+                    }
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </section>
+
+            {/* RESPONSIBILITIES */}
+            <h3 className="text-2xl font-semibold mb-3">Key Responsibilities</h3>
+            <ul className="list-disc ml-6 mb-8 opacity-90">
+              {selectedProject.responsibilities.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+
+            {/* IMPACT */}
+            <h3 className="text-2xl font-semibold mb-3">Business Impact</h3>
+            <ul className="list-disc ml-6 opacity-90">
+              {selectedProject.impact.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+
+          </div>
+        </div>
+      )}
+
 
     </div>
   );
