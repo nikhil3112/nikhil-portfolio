@@ -1,10 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaLinkedin, FaGithub, FaEnvelope, FaFileAlt } from "react-icons/fa";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/solid";
 
 export default function App() {
   const [dark, setDark] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
+
+  useEffect(() => {
+    if (selectedProject) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [selectedProject]);
 
   const skillBox =
     "px-3 py-1 rounded-md text-sm font-medium inline-block mr-2 mb-2 shadow";
@@ -393,55 +405,44 @@ export default function App() {
 
       {/* FULL SCREEN PROJECT VIEW */}
       {selectedProject && (
-        <div
-          className={
-            "fixed inset-0 z-50 overflow-y-auto px-10 py-12 transition " +
-            (dark ? "bg-[#0f0f0f] text-white" : "bg-white text-black")
-          }
-        >
-          <div className="max-w-6xl mx-auto min-h-screen">
+        <div className="fixed inset-0 z-50 bg-[#0f0f0f] text-white">
+          
+          {/* SCROLL CONTAINER */}
+          <div className="h-screen overflow-y-auto">
             
-            {/* HEADER */}
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h2 className="text-4xl font-bold mb-2">
+            {/* CONTENT WRAPPER */}
+            <div className="max-w-[95vw] mx-auto px-12 py-12">
+              
+              {/* HEADER */}
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-4xl font-bold">
                   {selectedProject.title}
                 </h2>
-                <p className="opacity-70 text-sm">
-                  Detailed project overview, features, and technology stack
-                </p>
+
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  className="px-4 py-2 border rounded hover:bg-gray-200 hover:text-black transition"
+                >
+                  ✕ 
+                </button>
               </div>
 
-              <button
-                onClick={() => setSelectedProject(null)}
-                className="px-4 py-2 border rounded hover:bg-gray-200 hover:text-black transition"
-              >
-                ✕ 
-              </button>
-            </div>
-
-            {/* DESCRIPTION */}
-            <section className="mb-10">
-              <h3 className="text-2xl font-semibold mb-3">Overview</h3>
-              <p className="opacity-90 leading-relaxed text-base">
+              {/* DESCRIPTION */}
+              <p className="mb-8 opacity-90 text-lg">
                 {selectedProject.description}
               </p>
-            </section>
 
-            {/* FEATURES */}
-            <section className="mb-10">
-              <h3 className="text-2xl font-semibold mb-4">Key Features</h3>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-disc ml-6 opacity-90">
+              {/* FEATURES */}
+              <h3 className="text-2xl font-semibold mb-3">Key Features</h3>
+              <ul className="list-disc ml-6 mb-10 space-y-2">
                 {selectedProject.highlights.map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
-            </section>
 
-            {/* TECH STACK */}
-            <section className="mb-10">
-              <h3 className="text-2xl font-semibold mb-4">Technology Stack</h3>
-              <div>
+              {/* TECH STACK */}
+              <h3 className="text-2xl font-semibold mb-3">Tech Stack</h3>
+              <div className="mb-10">
                 {selectedProject.tech.map((tech, i) => (
                   <span
                     key={i}
@@ -454,28 +455,31 @@ export default function App() {
                   </span>
                 ))}
               </div>
-            </section>
 
-            {/* RESPONSIBILITIES */}
-            <h3 className="text-2xl font-semibold mb-3">Key Responsibilities</h3>
-            <ul className="list-disc ml-6 mb-8 opacity-90">
-              {selectedProject.responsibilities.map((item, i) => (
-                <li key={i}>{item}</li>
-              ))}
-            </ul>
+              {/* RESPONSIBILITIES */}
+              <h3 className="text-2xl font-semibold mb-3">
+                Key Responsibilities
+              </h3>
+              <ul className="list-disc ml-6 mb-10 space-y-2">
+                {selectedProject.responsibilities.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
 
-            {/* IMPACT */}
-            <h3 className="text-2xl font-semibold mb-3">Business Impact</h3>
-            <ul className="list-disc ml-6 opacity-90">
-              {selectedProject.impact.map((item, i) => (
-                <li key={i}>{item}</li>
-              ))}
-            </ul>
+              {/* IMPACT */}
+              <h3 className="text-2xl font-semibold mb-3">
+                Business Impact
+              </h3>
+              <ul className="list-disc ml-6 space-y-2">
+                {selectedProject.impact.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
 
+            </div>
           </div>
         </div>
       )}
-
 
     </div>
   );
