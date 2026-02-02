@@ -8,6 +8,43 @@ export default function App() {
   const skillBox =
     "px-3 py-1 rounded-md text-sm font-medium inline-block mr-2 mb-2 shadow";
 
+  const projects = [
+    {
+      title: "Enterprise HRMS & Payroll System",
+      description:
+        "Enterprise-grade HRMS platform handling employee lifecycle, attendance, payroll processing, loan & advance management, and accounting workflows.",
+      tech: ["Laravel", "React", "MySQL", "REST APIs", "AWS"],
+      highlights: [
+        "Automated salary processing (PF, ESIC, TDS)",
+        "Loan & advance with EMI deduction",
+        "Employee Self-Service (ESS) portal",
+      ],
+    },
+    {
+      title: "Learning Management System (LMS)",
+      description:
+        "Scalable LMS platform for corporate training with course management, assessments, progress tracking, and certification workflows.",
+      tech: ["Laravel", "MySQL", "AJAX", "REST APIs"],
+      highlights: [
+        "Course & content management",
+        "Assessment & certification system",
+        "Admin analytics dashboard",
+      ],
+    },
+    {
+      title: "Job & Recruitment Portal",
+      description:
+        "Recruitment management system enabling job posting, candidate applications, resume uploads, and hiring workflows.",
+      tech: ["Laravel", "MySQL", "HTML", "CSS", "JavaScript"],
+      highlights: [
+        "Role-based access control",
+        "Candidate application tracking",
+        "Employer & admin dashboards",
+      ],
+    },
+  ];
+
+
   return (
     <div
       className={
@@ -84,7 +121,7 @@ export default function App() {
 
         <div className="flex flex-col md:flex-row items-center gap-10">
           {/* PROFILE IMAGE CIRCLE */}
-          <div className="aspect-square rounded-full overflow-hidden border-4 border-gray-600 shadow-lg">
+          <div className="w-48 aspect-square rounded-full overflow-hidden border-4 border-gray-600 shadow-lg">
             <img
               src="https://avatars.githubusercontent.com/u/55823957"
               alt="Nikhil Anande"
@@ -94,15 +131,14 @@ export default function App() {
 
 
           <p className="text-left opacity-90 leading-relaxed text-sm">
-            I am a Sr. Full Stack Developer with over 7+ years of experience in web 
-            development, specializing in PHP, Laravel, Python and RESTful API integrations. I 
-            have a proven track record in designing, developing, and managing web 
-            applications, utilizing my skills in front-end and back- end technologies to deliver 
-            high-quality solutions. My expertise includes working with various APIs and 
-            optimizing system performance. My technical proficiency in PHP, Laravel, Python, 
-            JavaScript, Node.js, React.js and AWS, coupled with my problem-solving skills and 
-            team collaboration abilities, have led to significant improvements in system efficiency 
-            and user engagement.
+            Senior Full Stack Developer with 7+ years of experience building
+            enterprise-grade web applications. I specialize in HRMS, Payroll,
+            SaaS platforms, and API-driven systems using PHP (Laravel), Node.js,
+            React, and cloud technologies.
+          
+            <br /><br />
+            I focus on scalable backend architecture, secure integrations,
+            and performance-optimized applications that solve real business problems.
 
             <br /><br />
             I have worked with many technologies such as:
@@ -114,7 +150,6 @@ export default function App() {
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>MySQL</span>
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>PostgreSQL</span>
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>AWS</span>
-            <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>Python</span>
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>Node.js</span>
             <span className={skillBox + (dark ? " bg-white text-black" : " bg-black text-white")}>React.js</span>
 
@@ -122,6 +157,32 @@ export default function App() {
             Currently working on cloud apps, automations, Elasticsearch, and AI-based
             modules.
           </p>
+        </div>
+      </section>
+
+      {/* Key Expertise */}
+      <section className="max-w-5xl mx-auto mt-20 text-center">
+        <h2 className="text-2xl font-semibold mb-3 tracking-wide">Key Expertise</h2>
+        <hr className="border-gray-600 mb-10" />
+      
+        <div className="flex flex-wrap justify-center">
+          {[
+            "HRMS & Payroll Automation",
+            "Salary Processing & EMI Deductions",
+            "Capital & Expense Accounting",
+            "REST APIs & System Integrations",
+            "SaaS & Enterprise Applications",
+            "Cloud & Performance Optimization"
+          ].map(item => (
+            <span
+              key={item}
+              className={
+                skillBox + (dark ? " bg-white text-black" : " bg-black text-white")
+              }
+            >
+              {item}
+            </span>
+          ))}
         </div>
       </section>
 
@@ -156,9 +217,9 @@ export default function App() {
               <p className="italic opacity-70">Sr. Full Stack Developer — 2023 - Present | Pune, Maharashtra, India</p>
             </div>
             <ul className="list-disc ml-6 text-sm opacity-80 leading-relaxed">
-              <li>Developing advanced Laravel + React ecosystems.</li>
-              <li>Created OpenAI automation workflows.</li>
-              <li>Integrated Zoom, Google APIs, Microsoft Graph.</li>
+              <li>Developed and maintained enterprise-grade HRMS and SaaS applications using Laravel and React.</li>
+              <li>Implemented OpenAI-powered automation workflows for business process optimization.</li>
+              <li>Integrated Microsoft Graph, Google APIs, and Zoom APIs for communication and scheduling features.</li>
             </ul>
           </div>
 
@@ -189,7 +250,7 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-xl font-bold">Webbybutter Technology Pvt Ltd</h3>
-              <p className="italic opacity-70">PHP Developer (Laravel) — Sep 2020 - Apr 2021 | Vadodara, Gujarat, India</p>
+              <p className="italic opacity-70">PHP Developer (Laravel) — Jan 2019 - Aug 2020 | Vadodara, Gujarat, India</p>
             </div>
             <ul className="list-disc ml-6 text-sm opacity-80 leading-relaxed">
               <li>Built Angular-based interfaces with Laravel APIs (Passport & JWT).</li>
@@ -198,6 +259,51 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      {/* PROJECTS */}
+      <section className="max-w-5xl mx-auto mt-20 text-center">
+        <h2 className="text-2xl font-semibold mb-3 tracking-wide">Projects</h2>
+        <hr className="border-gray-600 mb-10" />
+      
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+          {projects.map((project, index) => (
+            <div
+              key={index}
+              className={
+                "p-6 rounded-xl border shadow transition hover:scale-[1.02] " +
+                (dark ? "border-gray-700 bg-[#151515]" : "border-gray-300 bg-white")
+              }
+            >
+              <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+      
+              <p className="text-sm opacity-80 mb-4 leading-relaxed">
+                {project.description}
+              </p>
+      
+              <ul className="list-disc ml-5 text-sm opacity-80 mb-4">
+                {project.highlights.map((point, i) => (
+                  <li key={i}>{point}</li>
+                ))}
+              </ul>
+      
+              <div className="mt-3">
+                {project.tech.map((tech, i) => (
+                  <span
+                    key={i}
+                    className={
+                      skillBox +
+                      (dark ? " bg-white text-black" : " bg-black text-white")
+                    }
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
     </div>
   );
 }
