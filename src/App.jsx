@@ -4,6 +4,7 @@ import { SunIcon, MoonIcon } from "@heroicons/react/24/solid";
 
 export default function App() {
   const [dark, setDark] = useState(true);
+  const [openProject, setOpenProject] = useState(null);
 
   const skillBox =
     "px-3 py-1 rounded-md text-sm font-medium inline-block mr-2 mb-2 shadow";
@@ -301,36 +302,53 @@ export default function App() {
             <div
               key={index}
               className={
-                "p-6 rounded-xl border shadow transition hover:scale-[1.02] " +
+                "p-6 rounded-xl border shadow transition " +
                 (dark ? "border-gray-700 bg-[#151515]" : "border-gray-300 bg-white")
               }
             >
-              <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-      
-              <p className="text-sm opacity-80 mb-4 leading-relaxed">
-                {project.description}
-              </p>
-      
-              <ul className="list-disc ml-5 text-sm opacity-80 mb-4">
-                {project.highlights.map((point, i) => (
-                  <li key={i}>{point}</li>
-                ))}
-              </ul>
-      
-              <div className="mt-3">
-                {project.tech.map((tech, i) => (
-                  <span
-                    key={i}
-                    className={
-                      skillBox +
-                      (dark ? " bg-white text-black" : " bg-black text-white")
-                    }
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
+              {/* TITLE */}
+              <h3
+                onClick={() =>
+                  setOpenProject(openProject === index ? null : index)
+                }
+                className="text-xl font-bold mb-2 cursor-pointer flex justify-between items-center"
+              >
+                {project.title}
+                <span className="text-sm opacity-60">
+                  {openProject === index ? "−" : "+"}
+                </span>
+              </h3>
+            
+              {/* COLLAPSIBLE CONTENT */}
+              {openProject === index && (
+                <div className="mt-4 animate-fadeIn">
+                  <p className="text-sm opacity-80 mb-4 leading-relaxed">
+                    {project.description}
+                  </p>
+            
+                  <ul className="list-disc ml-5 text-sm opacity-80 mb-4">
+                    {project.highlights.map((point, i) => (
+                      <li key={i}>{point}</li>
+                    ))}
+                  </ul>
+            
+                  <div className="mt-3">
+                    {project.tech.map((tech, i) => (
+                      <span
+                        key={i}
+                        className={
+                          skillBox +
+                          (dark ? " bg-white text-black" : " bg-black text-white")
+                        }
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+
           ))}
         </div>
       </section>
