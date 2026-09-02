@@ -1,9 +1,16 @@
+// Career start: Jan 2019 (WebbyButter - first full-time role)
+const CAREER_START = new Date("2019-01-01");
+const _yearsRaw = (Date.now() - CAREER_START.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+const _yearsMajor = Math.floor(_yearsRaw);
+const _yearsMinor = Math.floor((_yearsRaw - _yearsMajor) * 10);
+export const yearsOfExperience = `${_yearsMajor}.${_yearsMinor}+`;
+
 export const profile = {
   name: "Nikhil Anande",
   role: "Senior Full Stack Developer",
   headline: "Building production SaaS, resilient APIs, and practical AI automation.",
   summary:
-    "Senior Full Stack Developer with 7.6+ years of professional experience building SaaS platforms, enterprise applications, REST APIs, HRMS/Payroll/LMS systems, and business automation solutions.",
+    `Senior Full Stack Developer with ${yearsOfExperience} years of professional experience building SaaS platforms, enterprise applications, REST APIs, HRMS/Payroll/LMS systems, and business automation solutions.`,
   extendedSummary:
     "I work across architecture, database and API design, business logic, integrations, debugging, deployment, and production delivery. My core stack is PHP/Laravel, Node.js, React.js, SQL, AWS, Docker, and CI/CD, with hands-on LLM, OCR, speech-to-text, and workflow automation experience.",
   email: "nikhilanande58@gmail.com",
@@ -16,7 +23,7 @@ export const profile = {
 };
 
 export const highlights = [
-  { value: "7.6+", label: "Years in professional development" },
+  { value: yearsOfExperience, label: "Years in professional development" },
   { value: "4", label: "Featured production case studies" },
   { value: "Full-stack", label: "Architecture through deployment" },
   { value: "AI + SaaS", label: "Current engineering focus" },
