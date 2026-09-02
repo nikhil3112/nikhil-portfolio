@@ -8,6 +8,7 @@ import {
   profile,
   projects,
   skills,
+  yearsOfExperience,
 } from "./portfolioData";
 import "./portfolio.css";
 
@@ -401,7 +402,7 @@ export default function App() {
                   ))}
                 </div>
                 <div className={`mt-6 grid grid-cols-2 gap-3 rounded-2xl border p-4 ${dark ? "border-white/10 bg-black/20" : "border-slate-200 bg-slate-50"}`}>
-                  <div><p className="text-2xl font-black text-violet-500">7.6+</p><p className={`mt-1 text-xs ${dark ? "text-slate-400" : "text-slate-500"}`}>professional years</p></div>
+                  <div><p className="text-2xl font-black text-violet-500">{yearsOfExperience}</p><p className={`mt-1 text-xs ${dark ? "text-slate-400" : "text-slate-500"}`}>professional years</p></div>
                   <div><p className="text-2xl font-black text-cyan-500">2019</p><p className={`mt-1 text-xs ${dark ? "text-slate-400" : "text-slate-500"}`}>full-time career start</p></div>
                 </div>
               </div>
