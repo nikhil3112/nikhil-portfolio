@@ -86,8 +86,6 @@ export const skills = [
       "LLM Integration",
       "Document Processing",
       "Workflow Automation",
-      "GitHub Copilot",
-      "Claude",
       "AI-Assisted Engineering",
     ],
   },
@@ -133,7 +131,7 @@ export const experiences = [
       "Own application architecture, database and REST API design, business logic, integration decisions, debugging, validation, deployment, and production delivery for assigned solutions.",
       "Build JWT-authenticated APIs and integrations with Microsoft Graph, Google, Zoom, and other third-party services.",
       "Support production delivery using AWS, Docker, GitHub Actions, and CI/CD workflows.",
-      "Implement OpenAI/Gemini-enabled document processing, OCR invoice workflows, speech-to-text task creation, and workflow automation; use GitHub Copilot, Claude, and Gemini for scaffolding, codebase analysis, debugging, refactoring, and API integration while personally reviewing all production code.",
+      "Implement OpenAI/Gemini-enabled document processing, OCR invoice workflows, speech-to-text task creation, and workflow automation while personally reviewing production code.",
     ],
   },
   {

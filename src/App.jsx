@@ -1,1593 +1,737 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+  education,
+  experiences,
+  focusAreas,
+  highlights,
+  profile,
+  projects,
+  skills,
+} from "./portfolioData";
+import "./portfolio.css";
 
-const sectionVariant = {
-  hidden: { opacity: 0, y: 80 },
-  visible: { opacity: 1, y: 0 }
+const NAV_ITEMS = [
+  { id: "about", label: "About" },
+  { id: "experience", label: "Experience" },
+  { id: "projects", label: "Projects" },
+  { id: "skills", label: "Skills" },
+  { id: "contact", label: "Contact" },
+];
+
+const revealVariant = {
+  hidden: { opacity: 0, y: 28 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+  },
 };
 
+function getInitialTheme() {
+  if (typeof window === "undefined") return true;
+  const savedTheme = window.localStorage.getItem("portfolio-theme");
+  if (savedTheme === "dark") return true;
+  if (savedTheme === "light") return false;
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true;
+}
+
+function Icon({ name, className = "h-5 w-5" }) {
+  const props = {
+    className,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": true,
+  };
+
+  const paths = {
+    "arrow-right": <><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></>,
+    "arrow-up-right": <><path d="M7 17 17 7" /><path d="M7 7h10v10" /></>,
+    briefcase: <><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18" /></>,
+    calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></>,
+    check: <path d="m5 12 4 4L19 6" />,
+    "chevron-down": <path d="m6 9 6 6 6-6" />,
+    close: <path d="M6 6l12 12M18 6 6 18" />,
+    cloud: <path d="M17.5 19H7a5 5 0 1 1 1.3-9.82A6 6 0 0 1 20 11.5 3.5 3.5 0 0 1 17.5 19Z" />,
+    code: <><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14" /></>,
+    copy: <><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></>,
+    database: <><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6" /></>,
+    download: <><path d="M12 3v12m-5-5 5 5 5-5M5 21h14" /></>,
+    graduation: <><path d="m2 10 10-5 10 5-10 5L2 10Z" /><path d="M6 12.5V17c3.5 2.5 8.5 2.5 12 0v-4.5" /></>,
+    layers: <><path d="m12 2 9 5-9 5-9-5 9-5Z" /><path d="m3 12 9 5 9-5M3 17l9 5 9-5" /></>,
+    link: <><path d="M10 13a5 5 0 0 0 7.54.54l2-2a5 5 0 0 0-7.07-7.07l-1.15 1.15" /><path d="M14 11a5 5 0 0 0-7.54-.54l-2 2a5 5 0 0 0 7.07 7.07l1.15-1.15" /></>,
+    location: <><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></>,
+    mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></>,
+    menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+    moon: <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />,
+    phone: <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.33 1.84.56 2.8.69A2 2 0 0 1 22 16.92Z" />,
+    sparkles: <><path d="m12 3-1.3 3.7L7 8l3.7 1.3L12 13l1.3-3.7L17 8l-3.7-1.3L12 3Z" /><path d="m5 14-.8 2.2L2 17l2.2.8L5 20l.8-2.2L8 17l-2.2-.8L5 14ZM19 13l-.8 2.2L16 16l2.2.8L19 19l.8-2.2L22 16l-2.2-.8L19 13Z" /></>,
+    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></>,
+  };
+
+  if (name === "github") {
+    return <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .7A11.3 11.3 0 0 0 8.43 22.73c.57.1.78-.25.78-.55v-2.16c-3.18.7-3.85-1.35-3.85-1.35-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.25 3.33.95.1-.74.4-1.25.73-1.54-2.54-.29-5.21-1.27-5.21-5.66 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.12 1.17A10.8 10.8 0 0 1 12 6c.96 0 1.92.13 2.82.38 2.16-1.48 3.12-1.17 3.12-1.17.62 1.57.23 2.73.11 3.02.74.8 1.18 1.82 1.18 3.07 0 4.4-2.68 5.36-5.23 5.65.41.35.77 1.06.77 2.15v3.08c0 .3.21.66.79.55A11.3 11.3 0 0 0 12 .7Z" /></svg>;
+  }
+
+  if (name === "linkedin") {
+    return <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.32 7.43A2.06 2.06 0 1 1 5.32 3.3a2.06 2.06 0 0 1 0 4.13ZM7.1 20.45H3.54V9H7.1v11.45ZM22.22 0H1.77A1.75 1.75 0 0 0 0 1.73v20.54A1.75 1.75 0 0 0 1.77 24h20.45A1.75 1.75 0 0 0 24 22.27V1.73A1.75 1.75 0 0 0 22.22 0Z" /></svg>;
+  }
+
+  return <svg {...props}>{paths[name] ?? null}</svg>;
+}
+
+function SectionHeading({ eyebrow, title, description, dark, align = "left" }) {
+  const centered = align === "center";
+  return (
+    <div className={centered ? "mx-auto mb-12 max-w-3xl text-center" : "mb-12 max-w-3xl"}>
+      <p className="mb-3 text-sm font-bold uppercase tracking-[0.22em] text-violet-500">{eyebrow}</p>
+      <h2 className={`text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl ${dark ? "text-white" : "text-slate-950"}`}>
+        {title}
+      </h2>
+      {description ? <p className={`mt-5 text-base leading-8 sm:text-lg ${dark ? "text-slate-300" : "text-slate-600"}`}>{description}</p> : null}
+    </div>
+  );
+}
+
+function SocialLink({ href, label, icon, dark }) {
+  const external = href.startsWith("http");
+  return (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noreferrer" : undefined}
+      aria-label={label}
+      className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
+        dark
+          ? "border-white/10 bg-white/[0.06] text-slate-300 hover:border-violet-400/50 hover:bg-white/10 hover:text-white"
+          : "border-slate-200 bg-white text-slate-600 shadow-sm hover:border-violet-300 hover:text-slate-950"
+      }`}
+    >
+      <Icon name={icon} />
+    </a>
+  );
+}
+
+function SkillCard({ skill, dark, index, reduceMotion }) {
+  return (
+    <motion.article
+      variants={revealVariant}
+      initial={reduceMotion ? false : "hidden"}
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ delay: reduceMotion ? 0 : index * 0.05 }}
+      className={`rounded-3xl border p-6 transition hover:-translate-y-1 ${
+        dark
+          ? "border-white/10 bg-white/[0.045] hover:border-violet-400/30 hover:bg-white/[0.07]"
+          : "border-slate-200 bg-white shadow-sm hover:border-violet-200 hover:shadow-xl hover:shadow-violet-500/5"
+      }`}
+    >
+      <div className={`mb-5 inline-flex h-11 w-11 items-center justify-center rounded-2xl ${dark ? "bg-violet-500/[0.15] text-violet-300" : "bg-violet-50 text-violet-600"}`}>
+        <Icon name={skill.icon} />
+      </div>
+      <h3 className={`text-lg font-bold ${dark ? "text-white" : "text-slate-950"}`}>{skill.title}</h3>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {skill.items.map((item) => (
+          <span key={item} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${dark ? "border-white/10 bg-black/20 text-slate-300" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
+            {item}
+          </span>
+        ))}
+      </div>
+    </motion.article>
+  );
+}
+
 export default function App() {
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(getInitialTheme);
+  const [activeSection, setActiveSection] = useState("home");
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [activeTab, setActiveTab] = useState('home');
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [copied, setCopied] = useState(false);
+  const modalCloseRef = useRef(null);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.localStorage.setItem("portfolio-theme", dark ? "dark" : "light");
+    document.documentElement.style.colorScheme = dark ? "dark" : "light";
+  }, [dark]);
+
+  useEffect(() => {
+    document.title = `${profile.name} | ${profile.role}`;
+    const description = "Senior Full Stack Developer specializing in Laravel, Node.js, React.js, SaaS platforms, REST APIs, cloud delivery, and AI workflow automation.";
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "description");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", description);
+
+    let schema = document.getElementById("portfolio-person-schema");
+    if (!schema) {
+      schema = document.createElement("script");
+      schema.id = "portfolio-person-schema";
+      schema.type = "application/ld+json";
+      document.head.appendChild(schema);
+    }
+    schema.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: profile.name,
+      jobTitle: profile.role,
+      email: `mailto:${profile.email}`,
+      sameAs: [profile.github, profile.linkedin],
+      knowsAbout: ["Laravel", "Node.js", "React.js", "SaaS", "REST APIs", "AI workflow automation"],
+    });
   }, []);
 
   useEffect(() => {
-    if (selectedProject) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    const ids = ["home", ...NAV_ITEMS.map((item) => item.id)];
+    const sections = ids.map((id) => document.getElementById(id)).filter(Boolean);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]?.target?.id) setActiveSection(visible[0].target.id);
+      },
+      { rootMargin: "-25% 0px -58% 0px", threshold: [0.05, 0.2, 0.45] },
+    );
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const shouldLock = mobileOpen || Boolean(selectedProject);
+    const previousOverflow = document.body.style.overflow;
+    if (shouldLock) document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "auto";
+      document.body.style.overflow = previousOverflow;
     };
+  }, [mobileOpen, selectedProject]);
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key !== "Escape") return;
+      setMobileOpen(false);
+      setSelectedProject(null);
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  useEffect(() => {
+    if (selectedProject) window.requestAnimationFrame(() => modalCloseRef.current?.focus());
   }, [selectedProject]);
 
-  const projects = [
-    {
-      title: "Enterprise HRMS & Payroll System",
-      description: "Enterprise-grade HRMS platform managing employee lifecycle, payroll automation, compliance, and accounting workflows for large organizations.",
-      tech: ["Laravel", "React", "MySQL", "REST APIs", "AWS"],
-      gradient: "from-purple-500 to-pink-500",
-      highlights: [
-        "Automated payroll processing with PF, ESIC, TDS compliance",
-        "Loan & advance management with EMI deduction system",
-        "Employee Self-Service (ESS) portal with real-time access",
-        "Attendance, leave & shift management with reporting dashboards"
-      ],
-      responsibilities: [
-        "Architected scalable HRMS system with optimized database schema",
-        "Developed payroll engine handling statutory calculations and edge cases",
-        "Built secure REST APIs with role-based authentication",
-        "Optimized large dataset queries improving performance",
-        "Implemented modular architecture for maintainability and scalability"
-      ],
-      impact: [
-        "Reduced manual payroll processing effort by 70%",
-        "Improved salary accuracy and compliance",
-        "Enabled centralized HR operations across departments"
-      ]
-    },
-    {
-      title: "Learning Management System (LMS)",
-      description: "Scalable LMS platform for corporate training, progress tracking, and certification workflows.",
-      tech: ["Laravel", "MySQL", "AJAX", "REST APIs"],
-      gradient: "from-blue-500 to-cyan-500",
-      highlights: [
-        "Dynamic course & content management system",
-        "Assessment engine with certification workflows",
-        "Real-time user progress tracking",
-        "Admin analytics dashboard for reporting"
-      ],
-      responsibilities: [
-        "Developed backend modules for courses, lessons, and assessments",
-        "Designed progress tracking and completion logic",
-        "Built REST APIs for frontend integration",
-        "Implemented role-based access control system",
-        "Optimized queries for faster report generation"
-      ],
-      impact: [
-        "Improved employee training visibility",
-        "Reduced manual tracking efforts",
-        "Centralized learning management system"
-      ]
-    },
-    {
-      title: "Job & Recruitment Portal",
-      description: "End-to-end recruitment platform for managing job postings, candidate workflows, and hiring processes.",
-      tech: ["Laravel", "MySQL", "HTML", "CSS", "JavaScript"],
-      gradient: "from-green-500 to-emerald-500",
-      highlights: [
-        "Role-based access for admin, employers, and candidates",
-        "Candidate application tracking system",
-        "Resume upload & structured data handling",
-        "Dashboard for employers and admins"
-      ],
-      responsibilities: [
-        "Designed recruitment workflow and application lifecycle",
-        "Developed secure file upload and resume storage system",
-        "Built admin and employer dashboards",
-        "Optimized search queries for candidate filtering",
-        "Implemented scalable backend APIs"
-      ],
-      impact: [
-        "Reduced hiring cycle time",
-        "Improved candidate tracking efficiency",
-        "Streamlined recruitment operations"
-      ]
-    },
-    {
-      title: "Invoice to Excel Automation (OCR + ERP)",
-      description: "OCR-based automation system converting invoices into structured ERP-ready Excel formats.",
-      tech: ["PHP", "Tesseract OCR", "PhpSpreadsheet", "React Native", "Imagick"],
-      gradient: "from-orange-500 to-red-500",
-      highlights: [
-        "OCR-based invoice parsing from PDF and images",
-        "Line-item extraction (HSN, Qty, GST, Amount)",
-        "Automated Excel generation using ERP templates",
-        "Mobile app for invoice scanning and upload"
-      ],
-      responsibilities: [
-        "Built OCR pipeline using Tesseract for text extraction",
-        "Developed intelligent parsing logic for structured data",
-        "Automated Excel generation using PhpSpreadsheet",
-        "Integrated mobile app with backend APIs",
-        "Improved OCR accuracy with preprocessing techniques"
-      ],
-      impact: [
-        "Reduced manual data entry by 80%",
-        "Improved processing speed and accuracy",
-        "Enabled seamless ERP integration"
-      ]
-    },
-    {
-      title: "Super Market Management System",
-      description: "Full-stack e-commerce system for managing products, inventory, orders, and online payments.",
-      tech: ["Laravel", "Node.js", "React", "MySQL", "Stripe"],
-      gradient: "from-indigo-500 to-purple-500",
-      highlights: [
-        "Product & category management system",
-        "User authentication and cart flow",
-        "Order management dashboard",
-        "Stripe payment gateway integration"
-      ],
-      responsibilities: [
-        "Developed REST APIs for products, orders, and users",
-        "Implemented secure authentication system",
-        "Integrated Stripe for payment processing",
-        "Built admin dashboard for inventory and order tracking",
-        "Optimized API performance and response time"
-      ],
-      impact: [
-        "Enabled online ordering for retail business",
-        "Improved order tracking and management",
-        "Built scalable e-commerce foundation"
-      ]
-    },
-    {
-      title: "Sales Dashboard & Invoice Automation",
-      description: "Role-based sales dashboard with automation for SRP tracking, order workflows, and invoice generation.",
-      tech: ["Node.js", "React", "SSMS", "WhatsApp API", "REST APIs"],
-      gradient: "from-yellow-500 to-orange-500",
-      highlights: [
-        "SRP completion tracking integrated with SSMS",
-        "LOT-based photo upload and mapping system",
-        "WhatsApp integration for real-time sharing",
-        "Sales Order workflow with approval system",
-        "Automated Invoice & e-Way Bill generation"
-      ],
-      responsibilities: [
-        "Designed end-to-end workflow from SRP to invoice generation",
-        "Developed React dashboard for role-based access",
-        "Built Node.js APIs for automation and integrations",
-        "Integrated external APIs for invoice and e-way bill generation",
-        "Implemented notification and status tracking system"
-      ],
-      impact: [
-        "Reduced manual coordination across teams",
-        "Automated billing and invoicing workflows",
-        "Improved operational efficiency and tracking",
-        "Enabled real-time visibility of sales processes"
-      ]
-    }
-  ];
+  const scrollToSection = (id) => {
+    setMobileOpen(false);
+    window.requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    });
+  };
 
-  const experiences = [
-    {
-      company: "Webetron Technology Pvt Ltd",
-      role: "Sr. Full Stack Developer",
-      period: "2023 - Present",
-      location: "Pune, Maharashtra (Remote)",
-      color: "from-purple-500 to-pink-500",
-      points: [
-        "Designed and implemented OpenAI-powered automation solutions across Laravel, CodeIgniter, Node.js, and React ecosystems, enabling intelligent workflows and dynamic content generation.",
-        "Built scalable enterprise-grade applications including HRMS, Payroll, and LMS systems with modular architecture and role-based access control.",
-        "Developed high-performance REST APIs and microservice-based architecture to support large-scale SaaS applications.",
-        "Implemented React + Node.js dashboards for real-time monitoring, reporting, and automation workflows.",
-        "Integrated third-party APIs including Microsoft Graph, Google APIs, and Zoom for seamless enterprise connectivity.",
-        "Optimized complex SQL queries and database design, improving performance and reducing response time.",
-        "Worked on cloud deployments (AWS EC2, Azure) and CI/CD pipelines for smooth production releases.",
-        "Implemented secure authentication systems using JWT, OAuth, and API token strategies.",
-        "Collaborated with cross-functional teams to deliver scalable and maintainable solutions.",
-        "Led feature development and contributed to system architecture decisions."
-      ]
-    },
-    {
-      company: "Softnice India Pvt Ltd",
-      role: "Sr. Laravel Developer",
-      period: "2021 - 2023",
-      location: "Vadodara, Gujarat",
-      color: "from-blue-500 to-cyan-500",
-      points: [
-        "Designed and developed a full-featured Job Portal system using Laravel with scalable architecture.",
-        "Implemented complete recruitment workflow including job posting, candidate management, and admin dashboards.",
-        "Built dynamic and responsive UI using HTML5, CSS3, JavaScript, and AJAX.",
-        "Developed REST APIs for seamless frontend-backend communication.",
-        "Optimized MySQL database structure and queries, improving performance by reducing load time.",
-        "Implemented role-based authentication and secure data handling.",
-        "Worked on file upload systems including resume parsing and storage.",
-        "Improved system performance and reduced query execution time significantly.",
-        "Maintained and enhanced existing applications with bug fixes and feature updates."
-      ]
-    },
-    {
-      company: "WeblogySphere Technology Pvt Ltd",
-      role: "Laravel Developer",
-      period: "Sep 2020 - Apr 2021",
-      location: "Vadodara, Gujarat",
-      color: "from-green-500 to-emerald-500",
-      points: [
-        "Developed web applications using Laravel framework with clean MVC architecture.",
-        "Integrated third-party APIs including Google, Microsoft, and Dropbox services.",
-        "Built responsive frontend interfaces using HTML5, CSS3, and JavaScript.",
-        "Worked on REST API development and backend logic implementation.",
-        "Collaborated with team members to deliver client-based solutions.",
-        "Handled bug fixing, debugging, and performance improvements."
-      ]
-    },
-    {
-      company: "Webbybutter Technology Pvt Ltd",
-      role: "Laravel Developer",
-      period: "Jan 2019 – Aug 2020",
-      location: "Vadodara, Gujarat",
-      color: "from-orange-500 to-red-500",
-      points: [
-        "Developed Angular-based frontend interfaces integrated with Laravel backend APIs.",
-        "Implemented authentication using Laravel Passport and JWT.",
-        "Worked on financial and operational modules with complex business logic.",
-        "Designed REST APIs and backend services for enterprise use cases.",
-        "Built responsive UI using HTML5, CSS3, and JavaScript.",
-        "Maintained and optimized legacy codebases for better performance.",
-        "Collaborated with senior developers to improve architecture and workflows."
-      ]
-    }
-  ];
-
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveTab(sectionId);
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(profile.email);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      window.location.href = `mailto:${profile.email}`;
     }
   };
 
-  const getProjectIcon = (title) => {
-    if (title.includes("HRMS")) {
-      return (
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7"/>
-        </svg>
-      );
-    }
-
-    if (title.includes("Learning")) {
-      return (
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6l-8 4 8 4 8-4-8-4zm0 6v6m-8-6v6m16-6v6"/>
-        </svg>
-      );
-    }
-
-    if (title.includes("Recruitment")) {
-      return (
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16 11a4 4 0 11-8 0 4 4 0 018 0zm2 8a6 6 0 10-12 0h12z"/>
-        </svg>
-      );
-    }
-
-    if (title.includes("Invoice")) {
-      return (
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h10v16l-5-3-5 3V4z"/>
-        </svg>
-      );
-    }
-
-    if (title.includes("Super Market")) {
-      return (
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 6h13M7 13h10"/>
-        </svg>
-      );
-    }
-
-    if (title.includes("Sales")) {
-      return (
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M11 3v18m0 0l-4-4m4 4l4-4"/>
-        </svg>
-      );
-    }
-
-    return null;
-  };
+  const pageTone = dark ? "bg-[#07090f] text-white" : "bg-slate-50 text-slate-950";
+  const navTone = dark ? "border-white/10 bg-[#07090f]/80" : "border-slate-200/80 bg-white/[0.85]";
 
   return (
-    <div className={`min-h-screen font-sans relative overflow-hidden ${dark ? 'bg-black' : 'bg-white'}`}>
-      
-      {/* GLASS PARTICLES */}
-      <div className="fixed inset-0 pointer-events-none z-0">
+    <div className={`min-h-screen overflow-x-hidden font-sans antialiased ${pageTone}`}>
+      <a href="#main-content" className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-violet-600 px-4 py-2 text-sm font-bold text-white transition focus:translate-y-0">
+        Skip to content
+      </a>
 
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-3 h-3 bg-white/10 backdrop-blur-md rounded-full animate-float"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${i * 0.5}s`
-            }}
-          />
-        ))}
-
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+        <div className="portfolio-grid absolute inset-0 opacity-[0.55]" />
+        <div className="portfolio-noise absolute inset-0 opacity-[0.025]" />
+        <div className="portfolio-orb absolute -left-24 -top-40 h-[32rem] w-[32rem] rounded-full bg-violet-600/20 blur-[110px]" />
+        <div className="portfolio-orb portfolio-orb-delay absolute -right-40 top-[28%] h-[30rem] w-[30rem] rounded-full bg-cyan-500/[0.15] blur-[120px]" />
+        <div className="portfolio-orb portfolio-orb-delay-long absolute bottom-[-14rem] left-[28%] h-[34rem] w-[34rem] rounded-full bg-fuchsia-500/[0.15] blur-[130px]" />
       </div>
 
-      {/* CURSOR SPOTLIGHT */}
-      {/*<div
-        className="pointer-events-none fixed inset-0 z-40"
-        style={{
-          background: `radial-gradient(
-            600px at ${mousePosition.x}px ${mousePosition.y}px,
-            rgba(255,255,255,0.08),
-            transparent 80%
-          )`
-        }}
-      />*/}
-
-      {/* PREMIUM AURORA BACKGROUND */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-
-        {/* Blob 1 */}
-        <div className="absolute w-[600px] h-[600px] bg-purple-600/30 rounded-full blur-3xl animate-blob top-[-100px] left-[-100px]" />
-
-        {/* Blob 2 */}
-        <div className="absolute w-[500px] h-[500px] bg-pink-500/30 rounded-full blur-3xl animate-blob animation-delay-2000 top-[40%] right-[-100px]" />
-
-        {/* Blob 3 */}
-        <div className="absolute w-[500px] h-[500px] bg-blue-500/30 rounded-full blur-3xl animate-blob animation-delay-4000 bottom-[-100px] left-[30%]" />
-
-        {/* Soft overlay */}
-        <div className="absolute inset-0 backdrop-blur-[120px]" />
-
-      </div>
-
-      {/* Theme Toggle */}
-      <button
-          onClick={() => setDark(!dark)}
-          className={`fixed top-6 right-6 z-50 flex items-center w-16 h-9 px-1 rounded-full border backdrop-blur-xl shadow-2xl transition-all duration-300 ${
-            dark
-              ? 'bg-white/10 border-white/20'
-              : 'bg-black/10 border-black/20'
-          }`}
-        >
-
-          {/* Sliding Circle */}
-          <div
-            className={`flex items-center justify-center w-7 h-7 rounded-full shadow-md transform transition-all duration-300 ${
-              dark
-                ? 'translate-x-7 bg-yellow-400'
-                : 'translate-x-0 bg-gray-800'
-            }`}
-          >
-            {dark ? (
-              /* Sun Icon */
-              <svg
-                className="w-4 h-4 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 4V2m0 20v-2m8-8h2M2 12H4m12.95 6.95l1.414 1.414M4.636 4.636L6.05 6.05m12.728-1.414L17.364 6.05M6.05 17.95l-1.414 1.414M12 6a6 6 0 100 12 6 6 0 000-12z" />
-              </svg>
-            ) : (
-              /* Moon Icon */
-              <svg
-                className="w-4 h-4 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M21 12.79A9 9 0 1111.21 3c0 .34.02.67.05 1A7 7 0 0021 12.79z" />
-              </svg>
-            )}
-          </div>
-
-        </button>
-
-      {/* Hero Section */}
-  
-      <motion.section
-        className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden"
-        id="home"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-
-        {/* Background Glow */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute w-[400px] h-[400px] bg-purple-500/20 blur-3xl rounded-full top-20 left-1/4" />
-          <div className="absolute w-[400px] h-[400px] bg-pink-500/20 blur-3xl rounded-full bottom-20 right-1/4" />
-        </div>
-
-        <div className="max-w-6xl mx-auto text-center z-10">
-
-          {/* Profile Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            whileHover={{ scale: 1.08 }}
-            className="relative inline-block mb-8"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-2xl opacity-60" />
-            <div className="relative w-44 h-44 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl">
-              <img
-                src="https://avatars.githubusercontent.com/u/55823957"
-                alt="Nikhil"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </motion.div>
-
-          {/* Name */}
-          <motion.h1
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className={`text-5xl md:text-7xl font-black mb-4 ${
-              dark ? 'text-white' : 'text-gray-900'
-            }`}
-          >
-            Nikhil Anande
-          </motion.h1>
-
-          {/* Role */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mb-6"
-          >
-            <span className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
-              Sr. Full Stack Developer
+      <header className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-2xl ${navTone}`}>
+        <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8" aria-label="Primary navigation">
+          <button type="button" onClick={() => scrollToSection("home")} className="group flex items-center gap-3 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500" aria-label="Go to home section">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-sm font-black text-white shadow-lg shadow-violet-500/20 transition group-hover:rotate-3 group-hover:scale-105">NA</span>
+            <span className="hidden text-left sm:block">
+              <span className={`block text-sm font-black ${dark ? "text-white" : "text-slate-950"}`}>Nikhil Anande</span>
+              <span className={`block text-[11px] ${dark ? "text-slate-400" : "text-slate-500"}`}>Full Stack • SaaS • AI</span>
             </span>
-          </motion.div>
+          </button>
 
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className={`text-lg md:text-xl max-w-2xl mx-auto mb-10 ${
-              dark ? 'text-gray-300' : 'text-gray-700'
-            }`}
-          >
-            8+ years building scalable SaaS platforms, HRMS systems, and API-driven applications using Laravel, Node, React, and Cloud technologies.
-          </motion.p>
-
-          {/*  SOCIAL UI */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="flex justify-center gap-5 mb-10 flex-wrap"
-          >
-
-            {/* LinkedIn */}
-            <a
-              href="https://www.linkedin.com/in/nikhil-anande-552197101/"
-              target="_blank"
-              rel="noreferrer"
-              className={`group relative p-4 rounded-2xl border backdrop-blur-xl shadow-xl transition-all duration-300 hover:scale-110 hover:-translate-y-1 ${
-                dark
-                  ? 'bg-white/10 border-white/20'
-                  : 'bg-white border-gray-200'
-              }`}
-            >
-              <svg
-                className="w-6 h-6 text-[#0A66C2]"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M19 0h-14C2.239 0 0 2.239 0 5v14c0 
-                2.761 2.239 5 5 5h14c2.761 0 5-2.239 
-                5-5V5c0-2.761-2.239-5-5-5zM7.12 
-                20.452H3.56V9h3.56v11.452zM5.34 
-                7.433a2.067 2.067 0 110-4.134 
-                2.067 2.067 0 010 4.134zM20.452 
-                20.452h-3.56v-5.605c0-1.337-.026-3.057-1.863-3.057-1.865 
-                0-2.15 1.455-2.15 2.962v5.7h-3.56V9h3.418v1.561h.048c.476-.9 
-                1.637-1.85 3.368-1.85 3.602 0 4.268 2.37 
-                4.268 5.455v6.286z"/>
-              </svg>
-
-              <span className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs opacity-0 group-hover:opacity-100 transition ${
-                dark ? 'text-white/70' : 'text-gray-600'
-              }`}>
-                LinkedIn
-              </span>
-            </a>
-
-            {/* GitHub */}
-            <a
-              href="https://github.com/nikhil3112"
-              target="_blank"
-              rel="noreferrer"
-              className={`group relative p-4 rounded-2xl border backdrop-blur-xl shadow-xl transition-all duration-300 hover:scale-110 hover:-translate-y-1 ${
-                dark
-                  ? 'bg-white/10 border-white/20'
-                  : 'bg-white border-gray-200'
-              }`}
-            >
-              <svg
-                className={`w-6 h-6 ${
-                  dark ? 'text-white' : 'text-gray-900'
-                }`}
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 .5C5.73.5.5 5.73.5 
-                12c0 5.09 3.29 9.41 7.86 
-                10.94.57.1.78-.25.78-.55 
-                0-.27-.01-1.17-.02-2.13-3.2.7-3.88-1.54-3.88-1.54-.53-1.35-1.3-1.71-1.3-1.71-1.06-.73.08-.72.08-.72 
-                1.17.08 1.78 1.2 1.78 1.2 
-                1.04 1.78 2.73 1.27 3.4.97.1-.75.4-1.27.72-1.56-2.55-.29-5.23-1.28-5.23-5.68 
-                0-1.25.45-2.27 1.2-3.07-.12-.29-.52-1.45.11-3.02 
-                0 0 .98-.31 3.2 1.17.93-.26 1.93-.39 2.92-.39 
-                1 0 2 .13 2.92.39 2.22-1.48 
-                3.2-1.17 3.2-1.17.63 1.57.23 
-                2.73.11 3.02.75.8 1.2 1.82 
-                1.2 3.07 0 4.41-2.69 5.38-5.25 
-                5.67.41.36.77 1.1.77 2.22 
-                0 1.6-.01 2.89-.01 3.28 
-                0 .3.2.66.79.55A10.51 
-                10.51 0 0023.5 12c0-6.27-5.23-11.5-11.5-11.5z"/>
-              </svg>
-
-              <span className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs opacity-0 group-hover:opacity-100 transition ${
-                dark ? 'text-white/70' : 'text-gray-600'
-              }`}>
-                GitHub
-              </span>
-            </a>
-
-            {/* Email */}
-            <a
-              href="mailto:nikhilanande58@gmail.com"
-              className={`group relative p-4 rounded-2xl border backdrop-blur-xl shadow-xl transition-all duration-300 hover:scale-110 hover:-translate-y-1 ${
-                dark
-                  ? 'bg-white/10 border-white/20'
-                  : 'bg-white border-gray-200'
-              }`}
-            >
-              <svg
-                className="w-6 h-6 text-pink-500"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 13.065L.8 6.4A2 2 0 012.4 
-                6h19.2a2 2 0 011.6.4L12 
-                13.065zM23.2 8.8v9.2a2 2 0 01-2 
-                2H2.8a2 2 0 01-2-2V8.8l11.2 
-                6.665L23.2 8.8z"/>
-              </svg>
-
-              <span className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs opacity-0 group-hover:opacity-100 transition ${
-                dark ? 'text-white/70' : 'text-gray-600'
-              }`}>
-                Email
-              </span>
-            </a>
-
-          </motion.div>
-
-          {/* Contact Info */}
-          <div className="flex flex-col md:flex-row justify-center gap-4 mt-6">
-
-            {/* Email */}
-            <a
-              href="mailto:nikhilanande58@gmail.com"
-              className={`group flex items-center gap-3 px-5 py-3 rounded-2xl border backdrop-blur-xl transition-all duration-300 ${
-                dark
-                  ? 'bg-white/10 border-white/20 text-gray-300 hover:bg-white/20'
-                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100'
-              } shadow-lg hover:scale-105`}
-            >
-
-              {/* Email Icon */}
-              <svg
-                className={`w-5 h-5 ${
-                  dark ? 'text-pink-400' : 'text-pink-500'
-                }`}
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 13.065L.8 6.4A2 2 0 012.4 6h19.2a2 2 0 011.6.4L12 13.065zM23.2 8.8v9.2a2 2 0 01-2 2H2.8a2 2 0 01-2-2V8.8l11.2 6.665L23.2 8.8z"/>
-              </svg>
-
-              <span className="text-sm font-medium tracking-wide">
-                nikhilanande58@gmail.com
-              </span>
-
-            </a>
-
-            {/* WhatsApp */}
-            <a
-              href="https://wa.me/919724833864"
-              target="_blank"
-              rel="noreferrer"
-              className={`group flex items-center gap-3 px-5 py-3 rounded-2xl border backdrop-blur-xl transition-all duration-300 ${
-                dark
-                  ? 'bg-white/10 border-white/20 text-gray-300 hover:bg-white/20'
-                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100'
-              } shadow-lg hover:scale-105`}
-            >
-
-              {/* WhatsApp Icon */}
-              <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20.52 3.48A11.94 11.94 0 0012.06 0C5.4 0 .06 5.34.06 12c0 2.12.56 4.18 1.62 6L0 24l6.2-1.62A11.9 11.9 0 0012.06 24c6.66 0 12-5.34 12-12 0-3.2-1.24-6.2-3.54-8.52zM12.06 21.82c-1.88 0-3.72-.5-5.32-1.44l-.38-.22-3.68.96.98-3.58-.24-.38a9.78 9.78 0 01-1.52-5.16c0-5.44 4.44-9.88 9.9-9.88 2.64 0 5.12 1.02 6.98 2.9a9.82 9.82 0 012.9 6.98c0 5.46-4.44 9.9-9.88 9.9zm5.44-7.44c-.3-.16-1.78-.88-2.06-.98-.28-.1-.48-.16-.68.16s-.78.98-.96 1.18c-.18.2-.36.22-.66.06-.3-.16-1.26-.46-2.4-1.48-.88-.78-1.48-1.74-1.66-2.04-.18-.3-.02-.46.14-.62.14-.14.3-.36.44-.54.14-.18.18-.3.28-.5.1-.2.04-.38-.02-.54-.06-.16-.68-1.64-.94-2.26-.26-.62-.52-.54-.68-.54h-.58c-.2 0-.52.08-.8.38s-1.04 1.02-1.04 2.5c0 1.48 1.06 2.92 1.2 3.12.14.2 2.08 3.18 5.04 4.46.7.3 1.24.48 1.66.62.7.22 1.34.18 1.84.1.56-.08 1.78-.72 2.04-1.42.26-.7.26-1.3.18-1.42-.08-.12-.28-.2-.58-.36z"/>
-              </svg>
-
-              <span className="text-sm font-medium tracking-wide">
-                +91 97248 33864
-              </span>
-
-            </a>
-
-          </div>
-
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
-            ↓
-          </div>
-
-        </div>
-      </motion.section>
-
-      {/* Navigation */}
-      <nav className={`sticky top-0 z-40 backdrop-blur-xl ${
-          dark ? 'bg-gray-900/70' : 'bg-white/70'
-        }`}>
-          <div className="max-w-6xl mx-auto px-6 py-4 flex justify-center">
-
-            <div className={`flex gap-2 p-2 rounded-2xl ${
-              dark ? 'bg-white/10 border border-white/10' : 'bg-gray-100 border border-gray-200'
-            }`}>
-
-              {['home', 'about', 'experience', 'projects'].map((item) => (
-                
+          <div className="hidden items-center gap-1 lg:flex">
+            {NAV_ITEMS.map((item) => {
+              const active = activeSection === item.id;
+              return (
                 <button
-                  key={item}
-                  onClick={() => scrollToSection(item)}
-                  className={`relative px-5 py-2 rounded-xl text-sm md:text-base font-semibold capitalize transition-all duration-300 ${
-                    
-                    activeTab === item
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                      : dark
-                      ? 'text-gray-300 hover:bg-white/10 hover:text-white'
-                      : 'text-gray-600 hover:bg-white hover:text-gray-900'
+                  key={item.id}
+                  type="button"
+                  onClick={() => scrollToSection(item.id)}
+                  aria-current={active ? "page" : undefined}
+                  className={`rounded-xl px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
+                    active
+                      ? dark ? "bg-white/10 text-white" : "bg-slate-100 text-slate-950"
+                      : dark ? "text-slate-400 hover:bg-white/[0.06] hover:text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
                   }`}
                 >
-
-                  {item}
-
-                  {/* subtle hover glow */}
-                  {activeTab === item && (
-                    <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-20 blur-md -z-10" />
-                  )}
-
+                  {item.label}
                 </button>
+              );
+            })}
+          </div>
 
-              ))}
-
-            </div>
-
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDark((value) => !value)}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${dark ? "border-white/10 bg-white/[0.06] text-amber-300 hover:bg-white/10" : "border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-100"}`}
+              aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+            >
+              <Icon name={dark ? "sun" : "moon"} />
+            </button>
+            <a href={profile.resumeFile} download className="hidden items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-500/20 transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 sm:inline-flex">
+              <Icon name="download" className="h-4 w-4" /> Resume
+            </a>
+            <button
+              type="button"
+              onClick={() => setMobileOpen((value) => !value)}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 lg:hidden ${dark ? "border-white/10 bg-white/[0.06] text-white" : "border-slate-200 bg-white text-slate-800"}`}
+              aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileOpen}
+            >
+              <Icon name={mobileOpen ? "close" : "menu"} />
+            </button>
           </div>
         </nav>
 
-      <div className="relative z-10">
-        {/* About Section */}
-        <motion.section
-          id="about"
-          className="py-20 px-6"
-          initial={{ opacity: 0, y: 80 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <div className="max-w-6xl mx-auto">
-
-            {/* Heading */}
-            <motion.h2
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className={`text-5xl font-black text-center mb-16 ${
-                dark ? 'text-white' : 'text-gray-900'
-              }`}
-            >
-              About Me
-            </motion.h2>
-
-            {/* Card */}
+        <AnimatePresence>
+          {mobileOpen ? (
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              className={`p-8 md:p-12 rounded-3xl border backdrop-blur-xl ${
-                dark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
-              } shadow-xl`}
+              initial={reduceMotion ? false : { opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              className={`border-t px-5 py-4 lg:hidden ${dark ? "border-white/10 bg-[#0a0d15]" : "border-slate-200 bg-white"}`}
             >
-
-              {/* Top Section */}
-              <div className="grid md:grid-cols-2 gap-10 mb-10">
-
-                {/* Left - Description */}
-                <motion.div
-                  initial={{ opacity: 0, x: -40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                >
-                  <h3 className={`text-2xl font-bold mb-4 ${
-                    dark ? 'text-white' : 'text-gray-900'
-                  }`}>
-                    Professional Summary
-                  </h3>
-
-                  <p className={`text-sm leading-relaxed ${
-                    dark ? 'text-gray-300' : 'text-gray-600'
-                  }`}>
-                    Senior Full Stack Developer with 8+ years of experience building 
-                    scalable enterprise applications. Specialized in Laravel, Node.js, React, 
-                    and API-driven systems with strong expertise in system architecture, 
-                    performance optimization, and secure integrations.
-                    <br /><br />
-                    Experienced in developing HRMS, Payroll, LMS, Recruitment systems, 
-                    and automation platforms including OCR-based ERP integrations and 
-                    OpenAI-powered workflows.
-                  </p>
-                </motion.div>
-
-                {/* Right - Highlights */}
-                <motion.div
-                  initial={{ opacity: 0, x: 40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  className="space-y-4"
-                >
-                  {[
-                    "8+ Years Experience in Full Stack Development",
-                    "Expert in Laravel, Node.js, React Ecosystem",
-                    "Strong in REST APIs & Microservices",
-                    "Worked on AI Automation & OCR Systems",
-                    "Cloud Deployment (AWS / Azure)",
-                    "Performance Optimization & Scalability"
-                  ].map((item, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: 20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="flex items-start gap-3"
-                    >
-
-                      {/* SVG Check Icon */}
-                      <div className="p-1 rounded-full bg-purple-500/20">
-                        <svg
-                          className="w-4 h-4 text-purple-500"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-
-                      <span className={`text-sm ${
-                        dark ? 'text-gray-300' : 'text-gray-600'
-                      }`}>
-                        {item}
-                      </span>
-
-                    </motion.div>
-                  ))}
-                </motion.div>
-
-              </div>
-
-              {/* Stats */}
-              <motion.div
-                className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
-              >
-
-                {[
-                  {
-                    label: "Experience",
-                    value: "8+ Years",
-                    icon: (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3M12 2a10 10 0 100 20 10 10 0 000-20z"/>
-                      </svg>
-                    )
-                  },
-                  {
-                    label: "Projects",
-                    value: "20+ Completed",
-                    icon: (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18"/>
-                      </svg>
-                    )
-                  },
-                  {
-                    label: "Technologies",
-                    value: "10+ Stack",
-                    icon: (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>
-                      </svg>
-                    )
-                  },
-                  {
-                    label: "APIs Built",
-                    value: "50+",
-                    icon: (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l3 3-3 3m5-6h3"/>
-                      </svg>
-                    )
-                  }
-                ].map((stat, i) => (
-
-                  <motion.div
-                    key={i}
-
-                    // 🔥 Entry animation
-                    initial={{ opacity: 0, y: 40, scale: 0.9 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: i * 0.1, duration: 0.4 }}
-
-                    // 🔥 Hover animation
-                    whileHover={{ scale: 1.08, y: -5 }}
-                    whileTap={{ scale: 0.95 }}
-
-                    className={`relative p-5 rounded-2xl text-center border backdrop-blur-xl overflow-hidden transition-all duration-300 ${
-                      dark
-                        ? 'bg-white/5 border-white/10 hover:bg-white/10'
-                        : 'bg-white border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-
-                    {/* Glow Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-pink-500/0 opacity-0 hover:opacity-100 transition duration-500" />
-
-                    {/* Icon */}
-                    <div className="flex justify-center mb-2 text-purple-400">
-                      {stat.icon}
-                    </div>
-
-                    {/* Value */}
-                    <div className="text-xl font-bold text-purple-500">
-                      {stat.value}
-                    </div>
-
-                    {/* Label */}
-                    <div className={`text-xs ${
-                      dark ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      {stat.label}
-                    </div>
-
-                  </motion.div>
-
+              <div className="mx-auto grid max-w-7xl gap-2">
+                {NAV_ITEMS.map((item) => (
+                  <button key={item.id} type="button" onClick={() => scrollToSection(item.id)} className={`rounded-xl px-4 py-3 text-left text-sm font-semibold ${activeSection === item.id ? "bg-violet-600 text-white" : dark ? "text-slate-300 hover:bg-white/[0.06]" : "text-slate-700 hover:bg-slate-100"}`}>
+                    {item.label}
+                  </button>
                 ))}
+                <a href={profile.resumeFile} download className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-sm font-bold text-white">
+                  <Icon name="download" className="h-4 w-4" /> Download resume
+                </a>
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </header>
 
-              </motion.div>
-
-              {/* Tech Stack */}
-              <motion.div
-                className="mb-8"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                viewport={{ once: true }}
-              >
-                <h3 className={`text-xl font-bold mb-4 ${
-                  dark ? 'text-white' : 'text-gray-900'
-                }`}>
-                  Core Technologies
-                </h3>
-
-                <div className="flex flex-wrap gap-3">
-
-                  {[
-                    { name: "PHP", color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
-                    { name: "Laravel", color: "bg-red-500/10 text-red-400 border-red-500/20" },
-                    { name: "Node.js", color: "bg-green-500/10 text-green-400 border-green-500/20" },
-                    { name: "React.js", color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" },
-                    { name: "MySQL", color: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
-                    { name: "AWS EC2", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
-                    { name: "REST APIs", color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
-                    { name: "Azure (VM & SQL Server)", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-                    { name: "API Integration", color: "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20" }
-                  ].map((tech, i) => (
-
-                    <motion.span
-                      key={i}
-
-                      // 🔥 Entry animation
-                      initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: i * 0.06, duration: 0.3 }}
-
-                      // 🔥 Hover animation
-                      whileHover={{ scale: 1.15, y: -3 }}
-                      whileTap={{ scale: 0.95 }}
-
-                      className={`px-4 py-2 rounded-full text-sm font-medium border backdrop-blur-xl cursor-default transition-all duration-300 hover:shadow-xl ${tech.color}`}
-                    >
-                      {tech.name}
-                    </motion.span>
-
-                  ))}
-
-                </div>
-              </motion.div>
-
-              {/* Expertise */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                viewport={{ once: true }}
-              >
-                <h3 className={`text-xl font-bold mb-5 ${
-                  dark ? 'text-white' : 'text-gray-900'
-                }`}>
-                  Key Expertise
-                </h3>
-
-                <div className="flex flex-wrap gap-3">
-
-                  {[
-                    "HRMS & Payroll Systems",
-                    "Salary Processing (PF, ESIC, TDS)",
-                    "Loan & EMI Management Systems",
-                    "REST API Development & Integration",
-                    "Microservices Architecture",
-                    "SaaS Application Development",
-                    "Authentication (JWT / OAuth)",
-                    "Database Design & Optimization",
-                    "Query Optimization (Large Data)",
-                    "Cloud Deployment (AWS / Azure)",
-                    "OCR & Document Processing",
-                    "ERP & Accounting Integrations",
-                    "WhatsApp API & Notification Systems",
-                    "Role-Based Access Control (RBAC)",
-                    "System Automation & Workflow Design"
-                  ].map((skill, i) => (
-
-                    <motion.span
-                      key={i}
-
-                      // 🔥 Animation magic
-                      initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: i * 0.05, duration: 0.3 }}
-
-                      // 🔥 Hover animation
-                      whileHover={{ scale: 1.1, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 cursor-default ${
-                        dark
-                          ? 'bg-white/10 text-gray-200 border border-white/10 hover:bg-white/20'
-                          : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
-                      }`}
-                    >
-                      {skill}
-                    </motion.span>
-
-                  ))}
-
-                </div>
-              </motion.div>
-
+      <main id="main-content" className="relative z-10">
+        <section id="home" className="relative flex min-h-screen scroll-mt-24 items-center px-5 pb-20 pt-32 sm:px-6 lg:px-8">
+          <div className="mx-auto grid w-full max-w-7xl items-center gap-14 lg:grid-cols-[1.16fr_0.84fr]">
+            <motion.div initial={reduceMotion ? false : { opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
+              <div className={`mb-6 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] ${dark ? "border-violet-400/25 bg-violet-500/10 text-violet-200" : "border-violet-200 bg-violet-50 text-violet-700"}`}>
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.9)]" /> Senior Full Stack Developer
+              </div>
+              <h1 className={`max-w-5xl text-4xl font-black leading-[1.04] tracking-[-0.045em] sm:text-6xl lg:text-7xl ${dark ? "text-white" : "text-slate-950"}`}>
+                Building production <span className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">SaaS, APIs & AI workflows</span>.
+              </h1>
+              <p className={`mt-7 max-w-3xl text-lg leading-8 sm:text-xl ${dark ? "text-slate-300" : "text-slate-600"}`}>
+                {profile.summary} I take ownership from architecture and data design through integrations, deployment, and production delivery.
+              </p>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <button type="button" onClick={() => scrollToSection("projects")} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-3.5 text-sm font-black text-white shadow-xl shadow-violet-600/20 transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+                  View selected work <Icon name="arrow-right" className="h-4 w-4" />
+                </button>
+                <a href={`mailto:${profile.email}`} className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-6 py-3.5 text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${dark ? "border-white/[0.15] bg-white/[0.055] text-white hover:bg-white/10" : "border-slate-200 bg-white text-slate-900 shadow-sm hover:border-violet-200 hover:shadow-lg"}`}>
+                  <Icon name="mail" className="h-4 w-4" /> Contact me
+                </a>
+              </div>
+              <div className="mt-8 flex items-center gap-3">
+                <SocialLink href={profile.github} label="Open GitHub profile" icon="github" dark={dark} />
+                <SocialLink href={profile.linkedin} label="Open LinkedIn profile" icon="linkedin" dark={dark} />
+                <SocialLink href={`mailto:${profile.email}`} label="Send Nikhil an email" icon="mail" dark={dark} />
+                <span className={`ml-2 hidden text-sm sm:inline ${dark ? "text-slate-500" : "text-slate-500"}`}>Laravel • Node.js • React.js • AWS • AI</span>
+              </div>
             </motion.div>
 
-          </div>
-        </motion.section>
-
-        {/* Experience Section */}
-        <motion.section
-          className="py-20 px-6"
-          id="experience"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <div className="max-w-6xl mx-auto">
-
-            <motion.h2
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className={`text-5xl font-black text-center mb-16 ${
-                dark ? 'text-white' : 'text-gray-900'
-              }`}
+            <motion.aside
+              initial={reduceMotion ? false : { opacity: 0, x: 36, scale: 0.97 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+              className="relative mx-auto w-full max-w-xl"
+              aria-label="Engineering profile snapshot"
             >
-              Experience
-            </motion.h2>
+              <div className="absolute -inset-4 rounded-[2.25rem] bg-gradient-to-br from-violet-500/25 via-fuchsia-500/10 to-cyan-500/20 blur-2xl" />
+              <div className={`relative overflow-hidden rounded-[2rem] border p-5 shadow-2xl backdrop-blur-2xl sm:p-7 ${dark ? "border-white/10 bg-[#0d111c]/[0.82] shadow-black/40" : "border-white bg-white/90 shadow-slate-300/50"}`}>
+                <div className="flex items-center gap-4">
+                  <div className="relative shrink-0">
+                    <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 blur opacity-70" />
+                    <img src={profile.avatar} alt="Nikhil Anande" width="88" height="88" className="relative h-20 w-20 rounded-2xl object-cover ring-2 ring-white/[0.15] sm:h-24 sm:w-24" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`text-xs font-bold uppercase tracking-[0.18em] ${dark ? "text-violet-300" : "text-violet-600"}`}>Engineering profile</p>
+                    <h2 className={`mt-1 truncate text-2xl font-black ${dark ? "text-white" : "text-slate-950"}`}>{profile.name}</h2>
+                    <p className={`mt-1 text-sm ${dark ? "text-slate-400" : "text-slate-600"}`}>Architecture • APIs • Automation</p>
+                  </div>
+                </div>
+                <div className={`my-6 h-px ${dark ? "bg-white/10" : "bg-slate-200"}`} />
+                <div className="space-y-3">
+                  {[
+                    "Own architecture, database, API, and business-logic decisions",
+                    "Build SaaS and enterprise workflows across backend and frontend",
+                    "Integrate cloud, Microsoft, payment, OCR, and LLM services",
+                    "Review, validate, deploy, and support production delivery",
+                  ].map((item) => (
+                    <div key={item} className="flex items-start gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/[0.15] text-emerald-400"><Icon name="check" className="h-3.5 w-3.5" /></span>
+                      <p className={`text-sm leading-6 ${dark ? "text-slate-300" : "text-slate-600"}`}>{item}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className={`mt-6 grid grid-cols-2 gap-3 rounded-2xl border p-4 ${dark ? "border-white/10 bg-black/20" : "border-slate-200 bg-slate-50"}`}>
+                  <div><p className="text-2xl font-black text-violet-500">7.6+</p><p className={`mt-1 text-xs ${dark ? "text-slate-400" : "text-slate-500"}`}>professional years</p></div>
+                  <div><p className="text-2xl font-black text-cyan-500">2019</p><p className={`mt-1 text-xs ${dark ? "text-slate-400" : "text-slate-500"}`}>full-time career start</p></div>
+                </div>
+              </div>
+            </motion.aside>
+          </div>
+          <button type="button" onClick={() => scrollToSection("about")} className={`absolute bottom-7 left-1/2 hidden -translate-x-1/2 items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition md:flex ${dark ? "text-slate-500 hover:text-white" : "text-slate-500 hover:text-slate-950"}`} aria-label="Scroll to about section">
+            Explore portfolio <Icon name="chevron-down" className="h-4 w-4" />
+          </button>
+        </section>
 
-            <div className="space-y-8">
-              {experiences.map((exp, idx) => (
+        <section className="px-5 pb-10 sm:px-6 lg:px-8" aria-label="Professional highlights">
+          <div className={`mx-auto grid max-w-7xl overflow-hidden rounded-3xl border sm:grid-cols-2 lg:grid-cols-4 ${dark ? "border-white/10 bg-white/[0.04]" : "border-slate-200 bg-white shadow-sm"}`}>
+            {highlights.map((item, index) => (
+              <div key={item.label} className={`p-6 ${index > 0 ? dark ? "border-t border-white/10 sm:border-l sm:border-t-0" : "border-t border-slate-200 sm:border-l sm:border-t-0" : ""}`}>
+                <p className="text-2xl font-black text-violet-500 sm:text-3xl">{item.value}</p>
+                <p className={`mt-2 text-sm leading-6 ${dark ? "text-slate-400" : "text-slate-600"}`}>{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-                <motion.div
-                  key={idx}
+        <section id="about" className="scroll-mt-24 px-5 py-24 sm:px-6 lg:px-8">
+          <motion.div className="mx-auto max-w-7xl" variants={revealVariant} initial={reduceMotion ? false : "hidden"} whileInView="visible" viewport={{ once: true, amount: 0.12 }}>
+            <SectionHeading
+              eyebrow="About"
+              title="Full product ownership, not just feature delivery."
+              description="I work across backend, frontend, data, integrations, cloud delivery, and production support—especially where business workflows are complex and reliability matters."
+              dark={dark}
+            />
+            <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+              <article className={`rounded-[2rem] border p-7 sm:p-9 ${dark ? "border-white/10 bg-white/[0.045]" : "border-slate-200 bg-white shadow-sm"}`}>
+                <p className={`text-lg leading-8 sm:text-xl ${dark ? "text-slate-200" : "text-slate-700"}`}>{profile.extendedSummary}</p>
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                  {focusAreas.map((area) => (
+                    <div key={area} className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${dark ? "border-white/10 bg-black/20 text-slate-300" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
+                      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet-500/[0.15] text-violet-500"><Icon name="check" className="h-4 w-4" /></span>
+                      <span className="text-sm font-semibold">{area}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
 
-                  // ENTRY ANIMATION
-                  initial={{ opacity: 0, y: 60, scale: 0.95 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: idx * 0.15, duration: 0.5 }}
+              <aside className={`rounded-[2rem] border p-7 sm:p-9 ${dark ? "border-white/10 bg-gradient-to-br from-violet-500/10 to-cyan-500/[0.06]" : "border-violet-100 bg-gradient-to-br from-violet-50 to-cyan-50"}`}>
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-500">Delivery scope</p>
+                <div className="mt-6 space-y-5">
+                  {[
+                    ["01", "Architecture & data", "Application structure, database design, REST APIs, authentication, and role-based access."],
+                    ["02", "Product engineering", "Backend business logic, React interfaces, dashboards, workflows, and reporting."],
+                    ["03", "Integrations & automation", "Microsoft, Google, payment services, OCR, LLMs, and workflow platforms."],
+                    ["04", "Production delivery", "Debugging, validation, deployment, CI/CD, and personally reviewed production code."],
+                  ].map(([number, title, text]) => (
+                    <div key={number} className="grid grid-cols-[auto_1fr] gap-4">
+                      <span className="text-sm font-black text-violet-500">{number}</span>
+                      <div>
+                        <h3 className={`font-bold ${dark ? "text-white" : "text-slate-950"}`}>{title}</h3>
+                        <p className={`mt-1 text-sm leading-6 ${dark ? "text-slate-400" : "text-slate-600"}`}>{text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </aside>
+            </div>
+          </motion.div>
+        </section>
 
-                  // HOVER ANIMATION
-                  whileHover={{ scale: 1.03, y: -5 }}
+        <section id="experience" className="scroll-mt-24 px-5 py-24 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <motion.div variants={revealVariant} initial={reduceMotion ? false : "hidden"} whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+              <SectionHeading
+                eyebrow="Experience"
+                title="Building and supporting production systems since 2019."
+                description="A progression from Laravel development to end-to-end ownership of SaaS, enterprise platforms, integrations, automation, and cloud delivery."
+                dark={dark}
+              />
+            </motion.div>
 
-                  className={`group relative p-8 rounded-3xl backdrop-blur-xl border shadow-2xl ${
-                    dark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-gray-200'
-                  }`}
-                  style={{
-                    boxShadow: dark
-                      ? '0 25px 50px rgba(168, 85, 247, 0.2)'
-                      : '0 25px 50px rgba(0,0,0,0.1)',
-                  }}
-                >
-
-                  {/* Gradient Hover Glow */}
-                  <motion.div
-                    className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${exp.color}`}
-                    initial={{ opacity: 0 }}
-                    whileHover={{ opacity: 0.15 }}
-                    transition={{ duration: 0.3 }}
-                  />
-
-                  <div className="flex flex-col md:flex-row gap-6 items-start relative z-10">
-
-                    {/* ICON ANIMATION */}
-                    <motion.div
-                      whileHover={{ rotate: 8, scale: 1.1 }}
-                      transition={{ type: "spring", stiffness: 200 }}
-                      className={`p-4 rounded-2xl bg-gradient-to-br ${exp.color} shadow-xl`}
-                    >
-                      <svg
-                        className="w-6 h-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                          d="M9 12h6M9 16h6M9 8h6M5 6h14M5 18h14" />
-                      </svg>
-                    </motion.div>
-
-                    <div className="flex-1">
-
-                      <h3 className={`text-2xl font-bold mb-2 ${
-                        dark ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        {exp.company}
-                      </h3>
-
-                      <p className={`text-lg mb-2 ${
-                        dark ? 'text-purple-300' : 'text-purple-600'
-                      }`}>
-                        {exp.role}
-                      </p>
-
-                      <p className={`text-sm mb-4 ${
-                        dark ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        {exp.period} • {exp.location}
-                      </p>
-
-                      <ul className={`space-y-2 ${
-                        dark ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        {exp.points.map((point, i) => (
-
-                          <motion.li
-                            key={i}
-
-                            // STAGGER ANIMATION
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.1 }}
-
-                            className="flex items-start gap-2"
-                          >
-                            <span className={`mt-2 w-2 h-2 rounded-full bg-gradient-to-r ${exp.color}`} />
-                            <span>{point}</span>
-                          </motion.li>
-
+            <div className="relative">
+              <div className={`absolute bottom-0 left-[1.15rem] top-2 hidden w-px sm:block ${dark ? "bg-white/10" : "bg-slate-200"}`} aria-hidden="true" />
+              <div className="space-y-6">
+                {experiences.map((experience, index) => (
+                  <motion.article
+                    key={`${experience.company}-${experience.period}`}
+                    variants={revealVariant}
+                    initial={reduceMotion ? false : "hidden"}
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.16 }}
+                    transition={{ delay: reduceMotion ? 0 : index * 0.04 }}
+                    className="relative sm:pl-14"
+                  >
+                    <div className={`absolute left-0 top-8 hidden h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-lg sm:flex ${experience.accent}`}>
+                      <Icon name="briefcase" className="h-4 w-4" />
+                    </div>
+                    <div className={`group relative overflow-hidden rounded-[2rem] border p-6 transition hover:-translate-y-1 sm:p-8 ${dark ? "border-white/10 bg-white/[0.045] hover:border-white/20" : "border-slate-200 bg-white shadow-sm hover:shadow-xl hover:shadow-slate-200/70"}`}>
+                      <div className={`absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${experience.accent}`} />
+                      <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
+                        <div>
+                          <p className="text-sm font-bold text-violet-500">{experience.role}</p>
+                          <h3 className={`mt-1 text-2xl font-black ${dark ? "text-white" : "text-slate-950"}`}>{experience.company}</h3>
+                        </div>
+                        <div className={`space-y-2 text-sm ${dark ? "text-slate-400" : "text-slate-500"}`}>
+                          <p className="flex items-center gap-2 md:justify-end"><Icon name="calendar" className="h-4 w-4" />{experience.period}</p>
+                          <p className="flex items-center gap-2 md:justify-end"><Icon name="location" className="h-4 w-4" />{experience.location}</p>
+                        </div>
+                      </div>
+                      <ul className="mt-6 grid gap-3">
+                        {experience.points.map((point) => (
+                          <li key={point} className="flex items-start gap-3">
+                            <span className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-500/[0.15] text-violet-500"><Icon name="check" className="h-3 w-3" /></span>
+                            <span className={`text-sm leading-6 ${dark ? "text-slate-300" : "text-slate-600"}`}>{point}</span>
+                          </li>
                         ))}
                       </ul>
+                    </div>
+                  </motion.article>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
+        <section id="projects" className="scroll-mt-24 px-5 py-24 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <motion.div variants={revealVariant} initial={reduceMotion ? false : "hidden"} whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+              <SectionHeading
+                eyebrow="Selected projects"
+                title="Case studies built around real operational workflows."
+                description="The strongest projects from my resume, presented as concise engineering case studies rather than a generic project gallery."
+                dark={dark}
+                align="center"
+              />
+            </motion.div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {projects.map((project, index) => (
+                <motion.article
+                  key={project.id}
+                  variants={revealVariant}
+                  initial={reduceMotion ? false : "hidden"}
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.16 }}
+                  transition={{ delay: reduceMotion ? 0 : index * 0.05 }}
+                  className={`group relative overflow-hidden rounded-[2rem] border transition hover:-translate-y-1 ${dark ? "border-white/10 bg-white/[0.045] hover:border-white/20" : "border-slate-200 bg-white shadow-sm hover:shadow-2xl hover:shadow-slate-200/70"}`}
+                >
+                  <div className={`h-1.5 w-full bg-gradient-to-r ${project.accent}`} />
+                  <div className="p-7 sm:p-8">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${dark ? "border-white/10 bg-white/[0.06] text-slate-300" : "border-slate-200 bg-slate-50 text-slate-600"}`}>{project.category}</span>
+                        <h3 className={`mt-5 text-2xl font-black ${dark ? "text-white" : "text-slate-950"}`}>{project.title}</h3>
+                        <p className="mt-1 text-sm font-bold text-violet-500">{project.subtitle}</p>
+                      </div>
+                      <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg transition group-hover:rotate-3 group-hover:scale-105 ${project.accent}`}>
+                        <Icon name={project.category.includes("AI") ? "sparkles" : "layers"} />
+                      </div>
+                    </div>
+                    <p className={`mt-5 text-sm leading-7 ${dark ? "text-slate-300" : "text-slate-600"}`}>{project.description}</p>
+                    <div className="mt-6 flex flex-wrap gap-2">
+                      {project.tech.slice(0, 5).map((technology) => (
+                        <span key={technology} className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${dark ? "bg-black/25 text-slate-300" : "bg-slate-100 text-slate-600"}`}>{technology}</span>
+                      ))}
+                      {project.tech.length > 5 ? <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${dark ? "bg-black/25 text-slate-400" : "bg-slate-100 text-slate-500"}`}>+{project.tech.length - 5}</span> : null}
+                    </div>
+                    <button type="button" onClick={() => setSelectedProject(project)} className={`mt-7 inline-flex items-center gap-2 text-sm font-black transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${dark ? "text-white hover:text-violet-300" : "text-slate-950 hover:text-violet-600"}`}>
+                      View case study <Icon name="arrow-up-right" className="h-4 w-4" />
+                    </button>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="skills" className="scroll-mt-24 px-5 py-24 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <motion.div variants={revealVariant} initial={reduceMotion ? false : "hidden"} whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+              <SectionHeading
+                eyebrow="Technical skills"
+                title="A full-stack toolkit organized by engineering responsibility."
+                description="This grouping makes the portfolio easier to scan than a long, undifferentiated list of technology badges."
+                dark={dark}
+                align="center"
+              />
+            </motion.div>
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {skills.map((skill, index) => <SkillCard key={skill.title} skill={skill} dark={dark} index={index} reduceMotion={reduceMotion} />)}
+            </div>
+          </div>
+        </section>
+
+        <section className="px-5 py-24 sm:px-6 lg:px-8" aria-labelledby="education-title">
+          <motion.div variants={revealVariant} initial={reduceMotion ? false : "hidden"} whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="mx-auto max-w-7xl">
+            <div className={`grid gap-8 rounded-[2rem] border p-7 sm:p-10 lg:grid-cols-[auto_1fr_auto] lg:items-center ${dark ? "border-white/10 bg-gradient-to-br from-white/[0.055] to-white/[0.025]" : "border-slate-200 bg-white shadow-sm"}`}>
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-500/[0.15]"><Icon name="graduation" className="h-8 w-8" /></div>
+              <div>
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-emerald-500">Education</p>
+                <h2 id="education-title" className={`mt-2 text-2xl font-black ${dark ? "text-white" : "text-slate-950"}`}>{education.degree}</h2>
+                <p className={`mt-1 ${dark ? "text-slate-300" : "text-slate-600"}`}>{education.institution} • {education.period}</p>
+              </div>
+              <div className={`space-y-2 text-sm lg:text-right ${dark ? "text-slate-400" : "text-slate-500"}`}>
+                {education.earlierCareer.map((item) => <p key={item}>{item}</p>)}
+              </div>
+            </div>
+          </motion.div>
+        </section>
+
+        <section id="contact" className="scroll-mt-24 px-5 pb-24 pt-16 sm:px-6 lg:px-8">
+          <motion.div variants={revealVariant} initial={reduceMotion ? false : "hidden"} whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="mx-auto max-w-7xl">
+            <div className="relative overflow-hidden rounded-[2.25rem] bg-gradient-to-br from-violet-600 via-fuchsia-600 to-cyan-500 p-[1px] shadow-2xl shadow-violet-600/20">
+              <div className={`relative overflow-hidden rounded-[calc(2.25rem-1px)] p-8 sm:p-12 ${dark ? "bg-[#0b0e17]" : "bg-white"}`}>
+                <div className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-36 left-[30%] h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
+                <div className="relative grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-[0.22em] text-violet-500">Contact</p>
+                    <h2 className={`mt-4 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl ${dark ? "text-white" : "text-slate-950"}`}>Let’s discuss a SaaS platform, API product, or automation workflow.</h2>
+                    <p className={`mt-5 max-w-2xl text-lg leading-8 ${dark ? "text-slate-300" : "text-slate-600"}`}>The fastest way to reach me is by email. You can also connect through LinkedIn or review my GitHub profile.</p>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                    <a href={`mailto:${profile.email}`} className="inline-flex items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-4 font-bold text-white shadow-xl shadow-violet-600/20 transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+                      <span className="flex min-w-0 items-center gap-3"><Icon name="mail" className="h-5 w-5 shrink-0" /><span className="truncate text-sm">{profile.email}</span></span>
+                      <Icon name="arrow-up-right" className="h-4 w-4 shrink-0" />
+                    </a>
+                    <div className="grid grid-cols-[1fr_auto] gap-3">
+                      <a href={`tel:${profile.phoneHref}`} className={`inline-flex min-w-0 items-center gap-3 rounded-2xl border px-5 py-4 font-bold transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${dark ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/10" : "border-slate-200 bg-slate-50 text-slate-900 hover:bg-white"}`}>
+                        <Icon name="phone" className="h-5 w-5 shrink-0 text-cyan-500" /><span className="truncate text-sm">{profile.phone}</span>
+                      </a>
+                      <button type="button" onClick={copyEmail} className={`inline-flex h-full min-w-[3rem] items-center justify-center rounded-2xl border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${dark ? "border-white/10 bg-white/[0.06] text-slate-300 hover:bg-white/10 hover:text-white" : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-white hover:text-slate-950"}`} aria-label="Copy email address" title={copied ? "Email copied" : "Copy email"}>
+                        {copied ? <Icon name="check" /> : <Icon name="copy" />}
+                      </button>
+                    </div>
+                    <div className="flex gap-3">
+                      <a href={profile.linkedin} target="_blank" rel="noreferrer" className={`inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${dark ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/10" : "border-slate-200 bg-slate-50 text-slate-900 hover:bg-white"}`}><Icon name="linkedin" className="h-4 w-4 text-[#0A66C2]" /> LinkedIn</a>
+                      <a href={profile.github} target="_blank" rel="noreferrer" className={`inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${dark ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/10" : "border-slate-200 bg-slate-50 text-slate-900 hover:bg-white"}`}><Icon name="github" className="h-4 w-4" /> GitHub</a>
                     </div>
                   </div>
-                </motion.div>
-
-              ))}
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Projects Section */}
-        <motion.section
-          className="py-20 px-6"
-          id="projects"
-          initial={{ opacity: 0, y: 80 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <div className="max-w-6xl mx-auto">
-            <h2 className={`text-5xl font-black text-center mb-16 ${
-              dark ? 'text-white' : 'text-gray-900'
-            }`}>
-              Featured Projects
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {projects.map((project, idx) => (
-                
-                <motion.div
-                  key={idx}
-                  onClick={() => setSelectedProject(project)}
-                  
-                  // Animation yaha add kiya hai
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.05, rotate: -1 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 200 }}
-
-                  className={`group relative p-6 rounded-3xl backdrop-blur-xl border cursor-pointer ${
-                    dark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-gray-200'
-                  }`}
-                  style={{
-                    boxShadow: dark 
-                      ? '0 25px 50px rgba(0,0,0,0.3)' 
-                      : '0 25px 50px rgba(0,0,0,0.1)',
-                    transformStyle: 'preserve-3d'
-                  }}
-                >
-                  
-                  {/* Gradient Accent */}
-                  <div className={`absolute top-0 left-0 right-0 h-2 rounded-t-3xl bg-gradient-to-r ${project.gradient}`} />
-                  
-                  <div className={`mb-4 p-3 rounded-2xl bg-gradient-to-br ${project.gradient} inline-block text-2xl`}>
-                    {getProjectIcon(project.title)}
-                  </div>
-
-                  <h3 className={`text-xl font-bold mb-3 ${
-                    dark ? 'text-white' : 'text-gray-900'
-                  }`}>
-                    {project.title}
-                  </h3>
-                  
-                  <p className={`text-sm mb-4 line-clamp-3 ${
-                    dark ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
-                    {project.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    {project.tech.slice(0, 3).map((tech, i) => (
-                      <span
-                        key={i}
-                        className={`text-xs px-3 py-1 rounded-lg font-medium ${
-                          dark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900'
-                        }`}
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Hover Glow */}
-                  <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${project.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-
-                </motion.div>
-
-              ))}
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Education Section */}
-        <motion.section
-          className="py-20 px-6"
-          initial={{ opacity: 0, y: 80 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <div className="max-w-6xl mx-auto">
-            
-            {/* Heading Animation */}
-            <motion.h2
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className={`text-5xl font-black text-center mb-16 ${
-                dark ? 'text-white' : 'text-gray-900'
-              }`}
-            >
-              Education
-            </motion.h2>
-
-            {/* Card Animation */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.03 }}
-              transition={{ type: "spring", stiffness: 120 }}
-              className={`group relative p-8 md:p-12 rounded-3xl backdrop-blur-2xl border shadow-2xl ${
-                dark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-gray-200'
-              }`}
-              style={{
-                boxShadow: dark
-                  ? '0 25px 60px rgba(168, 85, 247, 0.2)'
-                  : '0 25px 50px rgba(0,0,0,0.1)'
-              }}
-            >
-              
-              {/* Gradient Hover Effect */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 group-hover:opacity-10 transition duration-500" />
-
-              <div className="flex flex-col md:flex-row gap-6 items-start relative z-10">
-                
-                {/* Icon Animation */}
-                <motion.div
-                  whileHover={{ rotate: 10, scale: 1.1 }}
-                  className="p-4 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg"
-                >
-                  <svg
-                    className="w-8 h-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 14l9-5-9-5-9 5 9 5zm0 0v6m-6-3v3m12-3v3"
-                    />
-                  </svg>
-                </motion.div>
-
-                <div className="flex-1">
-                  
-                  <h3 className={`text-2xl font-bold mb-2 ${
-                    dark ? 'text-white' : 'text-gray-900'
-                  }`}>
-                    ITM Vadodara University
-                  </h3>
-
-                  <p className={`text-lg mb-2 ${
-                    dark ? 'text-green-300' : 'text-green-600'
-                  }`}>
-                    B.E Electronics & Communication
-                  </p>
-
-                  <p className={`text-sm mb-4 ${
-                    dark ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
-                    2017 - 2021
-                  </p>
-                  
                 </div>
               </div>
-            </motion.div>
+            </div>
+          </motion.div>
+        </section>
+      </main>
+
+      <footer className={`relative z-10 border-t px-5 py-8 sm:px-6 lg:px-8 ${dark ? "border-white/10" : "border-slate-200"}`}>
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
+          <div>
+            <p className={`font-black ${dark ? "text-white" : "text-slate-950"}`}>{profile.name}</p>
+            <p className={`mt-1 text-sm ${dark ? "text-slate-500" : "text-slate-500"}`}>Senior Full Stack Developer • SaaS • APIs • AI Automation</p>
           </div>
-        </motion.section>
+          <p className={`text-sm ${dark ? "text-slate-500" : "text-slate-500"}`}>© {new Date().getFullYear()} {profile.name}. Built with React, Tailwind CSS, and Framer Motion.</p>
+        </div>
+      </footer>
 
-        {/* Footer */}
-        <footer
-          className={`relative py-12 px-6 border-t ${
-            dark ? 'border-white/10 bg-black/30' : 'border-gray-200 bg-white/70'
-          } backdrop-blur-xl`}
-        >
-          <div className="max-w-6xl mx-auto text-center">
-
-            {/* Name + Glow */}
-            <motion.h3
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className={`text-xl font-bold mb-2 ${
-                dark ? 'text-white' : 'text-gray-900'
-              }`}
-            >
-              Nikhil Anande
-            </motion.h3>
-
-            {/* Dynamic Year */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className={`text-sm ${
-                dark ? 'text-gray-400' : 'text-gray-600'
-              }`}
-            >
-              © {new Date().getFullYear()} All rights reserved.
-            </motion.p>
-
-            {/* Tagline */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className={`text-xs mt-2 ${
-                dark ? 'text-gray-500' : 'text-gray-500'
-              }`}
-            >
-            </motion.p>
-
-            {/* Divider Line */}
-            <div className="mt-6 h-px w-24 mx-auto bg-gradient-to-r from-purple-500 to-pink-500 opacity-50" />
-
-          </div>
-        </footer>
-      </div>
-
-      {/* Project Modal */}
       <AnimatePresence>
-        {selectedProject && (
-          
+        {selectedProject ? (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-2xl"
-            initial={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4 backdrop-blur-xl"
+            initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setSelectedProject(null);
+            }}
           >
-
-            {/* Modal Box */}
             <motion.div
-              initial={{ scale: 0.8, y: 80, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.8, y: 50, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 120 }}
-              className="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scroll rounded-3xl border border-white/20 bg-gradient-to-br from-gray-900/90 to-purple-900/90 backdrop-blur-xl shadow-[0_30px_80px_rgba(168,85,247,0.3)]"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="project-modal-title"
+              initial={reduceMotion ? false : { opacity: 0, y: 40, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 180, damping: 23 }}
+              className={`portfolio-scrollbar relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[2rem] border shadow-2xl ${dark ? "border-white/[0.15] bg-[#0d111c] text-white shadow-black/50" : "border-slate-200 bg-white text-slate-950 shadow-slate-900/25"}`}
             >
-
-              {/* Header */}
-              <div className="sticky top-0 z-10 flex justify-between items-start p-6 rounded-t-3xl bg-gradient-to-r from-purple-500 to-pink-500">
-                
-                <motion.h2
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="text-3xl font-black text-white pr-4"
-                >
-                  {selectedProject.title}
-                </motion.h2>
-
-                {/* SVG Close Icon */}
-                <button
-                  onClick={() => setSelectedProject(null)}
-                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-300 hover:rotate-90"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M6 18L18 6" />
-                  </svg>
+              <div className={`sticky top-0 z-10 h-1.5 w-full bg-gradient-to-r ${selectedProject.accent}`} />
+              <div className={`sticky top-1.5 z-10 flex items-start justify-between gap-5 border-b px-6 py-5 backdrop-blur-2xl sm:px-8 ${dark ? "border-white/10 bg-[#0d111c]/[0.92]" : "border-slate-200 bg-white/[0.92]"}`}>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-500">{selectedProject.category}</p>
+                  <h2 id="project-modal-title" className="mt-1 text-2xl font-black sm:text-3xl">{selectedProject.title}</h2>
+                  <p className={`mt-1 text-sm ${dark ? "text-slate-400" : "text-slate-500"}`}>{selectedProject.subtitle}</p>
+                </div>
+                <button ref={modalCloseRef} type="button" onClick={() => setSelectedProject(null)} className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${dark ? "border-white/10 bg-white/[0.06] text-slate-300 hover:bg-white/10 hover:text-white" : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-950"}`} aria-label="Close project case study">
+                  <Icon name="close" />
                 </button>
               </div>
 
-              {/* Content */}
-              <div className="p-8 space-y-10">
-
-                {/* Description */}
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-gray-300 text-lg leading-relaxed"
-                >
-                  {selectedProject.description}
-                </motion.p>
-
-                {/* Tech Stack */}
-                <div>
-                  <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                    
-                    {/* Code Icon */}
-                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M16 18l6-6-6-6M8 6l-6 6 6 6" />
-                    </svg>
-
-                    Tech Stack
-                  </h3>
-
-                  <div className="flex flex-wrap gap-3">
-                    {selectedProject.tech.map((tech, i) => (
-                      <motion.span
-                        key={i}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.1 }}
-                        className={`px-4 py-2 rounded-xl bg-gradient-to-r ${selectedProject.gradient} text-white font-semibold shadow-lg`}
-                      >
-                        {tech}
-                      </motion.span>
+              <div className="space-y-9 p-6 sm:p-8">
+                <p className={`text-lg leading-8 ${dark ? "text-slate-300" : "text-slate-600"}`}>{selectedProject.description}</p>
+                <section aria-labelledby="project-stack-title">
+                  <h3 id="project-stack-title" className="text-lg font-black">Technology stack</h3>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {selectedProject.tech.map((technology) => (
+                      <span key={technology} className={`rounded-xl border px-3 py-2 text-sm font-bold ${dark ? "border-violet-400/20 bg-violet-500/10 text-violet-200" : "border-violet-200 bg-violet-50 text-violet-700"}`}>{technology}</span>
                     ))}
                   </div>
+                </section>
+
+                <div className="grid gap-7 md:grid-cols-2">
+                  <section aria-labelledby="project-scope-title">
+                    <h3 id="project-scope-title" className="text-lg font-black">What it covers</h3>
+                    <ul className="mt-4 space-y-3">
+                      {selectedProject.highlights.map((highlight) => (
+                        <li key={highlight} className="flex items-start gap-3">
+                          <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/[0.15] text-emerald-400"><Icon name="check" className="h-3.5 w-3.5" /></span>
+                          <span className={`text-sm leading-6 ${dark ? "text-slate-300" : "text-slate-600"}`}>{highlight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+
+                  <section aria-labelledby="project-engineering-title">
+                    <h3 id="project-engineering-title" className="text-lg font-black">Engineering contribution</h3>
+                    <ul className="mt-4 space-y-3">
+                      {selectedProject.engineering.map((item) => (
+                        <li key={item} className="flex items-start gap-3">
+                          <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500/[0.15] text-cyan-400"><Icon name="code" className="h-3.5 w-3.5" /></span>
+                          <span className={`text-sm leading-6 ${dark ? "text-slate-300" : "text-slate-600"}`}>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
                 </div>
 
-                {/* Features */}
-                <div>
-                  <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                    
-                    {/* Check Icon */}
-                    <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-
-                    Key Features
-                  </h3>
-
-                  <ul className="space-y-3">
-                    {selectedProject.highlights.map((item, i) => (
-                      <motion.li
-                        key={i}
-                        initial={{ opacity: 0, x: -30 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="flex items-start gap-3 text-gray-300"
-                      >
-                        <svg className="w-4 h-4 text-green-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{item}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
+                <div className={`rounded-2xl border p-5 text-sm leading-6 ${dark ? "border-white/10 bg-white/[0.045] text-slate-400" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
+                  Public repository and live-demo links are intentionally not shown because they were not included in the supplied resume. Add them only where you have permission to share the work.
                 </div>
-
-                {/* Responsibilities */}
-                <div>
-                  <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                    
-                    {/* Briefcase Icon */}
-                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 6h6m2 0a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V8a2 2 0 012-2m2 0V4h6v2" />
-                    </svg>
-
-                    My Responsibilities
-                  </h3>
-
-                  <ul className="space-y-3">
-                    {selectedProject.responsibilities.map((item, i) => (
-                      <motion.li
-                        key={i}
-                        initial={{ opacity: 0, x: -30 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="flex items-start gap-3 text-gray-300"
-                      >
-                        <svg className="w-4 h-4 text-blue-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{item}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Impact */}
-                <div>
-                  <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                    
-                    {/* Rocket Icon */}
-                    <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7M5 19h14" />
-                    </svg>
-
-                    Business Impact
-                  </h3>
-
-                  <ul className="space-y-3">
-                    {selectedProject.impact.map((item, i) => (
-                      <motion.li
-                        key={i}
-                        initial={{ opacity: 0, x: -30 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="flex items-start gap-3 text-gray-300"
-                      >
-                        <svg className="w-4 h-4 text-pink-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{item}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </div>
-
               </div>
             </motion.div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
-
-      <style>{`
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 3s ease infinite;
-        }
-        
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-
-        .animate-blob {
-          animation: blob 12s infinite ease-in-out;
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-
-        /* FLOAT PARTICLES */
-        @keyframes float {
-          0% { transform: translateY(0px); opacity: 0.5; }
-          50% { transform: translateY(-30px); opacity: 1; }
-          100% { transform: translateY(0px); opacity: 0.5; }
-        }
-
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-
-        /* APPLE HOVER */
-        .card-hover::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(
-            300px circle at var(--x) var(--y),
-            rgba(255,255,255,0.15),
-            transparent 40%
-          );
-          opacity: 0;
-          transition: opacity 0.3s;
-        }
-
-        .card-hover:hover::before {
-          opacity: 1;
-        }
-      `}</style>
     </div>
   );
 }
