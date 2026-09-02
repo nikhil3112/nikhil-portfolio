@@ -1,9 +1,12 @@
-// Career start: Jan 2019 (WebbyButter - first full-time role)
+// Career start: Jan 2019 (first full-time role)
 const CAREER_START = new Date("2019-01-01");
-const _yearsRaw = (Date.now() - CAREER_START.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-const _yearsMajor = Math.floor(_yearsRaw);
-const _yearsMinor = Math.floor((_yearsRaw - _yearsMajor) * 10);
-export const yearsOfExperience = `${_yearsMajor}.${_yearsMinor}+`;
+const _now = new Date();
+const _totalMonths =
+  (_now.getFullYear() - CAREER_START.getFullYear()) * 12 +
+  (_now.getMonth() - CAREER_START.getMonth());
+const _years = Math.floor(_totalMonths / 12);
+const _months = _totalMonths % 12;
+export const yearsOfExperience = `${_years}.${_months}+`;
 
 export const profile = {
   name: "Nikhil Anande",
