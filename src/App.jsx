@@ -152,8 +152,20 @@ export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
   const modalCloseRef = useRef(null);
   const reduceMotion = useReducedMotion();
+
+  const FILTER_TABS = [
+    { id: "all", label: `All (${projects.length})` },
+    { id: "saas", label: "SaaS & Recruitment" },
+    { id: "ai", label: "AI & Automation" },
+    { id: "enterprise", label: "Enterprise Systems" },
+  ];
+
+  const filteredProjects = activeFilter === "all"
+    ? projects
+    : projects.filter((p) => p.filterCategory === activeFilter);
 
   useEffect(() => {
     window.localStorage.setItem("portfolio-theme", dark ? "dark" : "light");
@@ -300,7 +312,7 @@ export default function App() {
             >
               <Icon name={dark ? "sun" : "moon"} />
             </button>
-            <a href={profile.resumeFile} download className="hidden items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-500/20 transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 sm:inline-flex">
+            <a href={`${import.meta.env.BASE_URL}${profile.resumeFile}`} download className="hidden items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-500/20 transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 sm:inline-flex">
               <Icon name="download" className="h-4 w-4" /> Resume
             </a>
             <button
@@ -329,7 +341,7 @@ export default function App() {
                     {item.label}
                   </button>
                 ))}
-                <a href={profile.resumeFile} download className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-sm font-bold text-white">
+                <a href={`${import.meta.env.BASE_URL}${profile.resumeFile}`} download className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-sm font-bold text-white">
                   <Icon name="download" className="h-4 w-4" /> Download resume
                 </a>
               </div>
@@ -535,8 +547,27 @@ export default function App() {
               />
             </motion.div>
 
+            <div className="mb-10 flex flex-wrap items-center justify-center gap-2">
+              {FILTER_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveFilter(tab.id)}
+                  className={`rounded-full px-4 py-2 text-xs font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
+                    activeFilter === tab.id
+                      ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-md shadow-violet-500/25"
+                      : dark
+                      ? "border border-white/10 bg-white/[0.04] text-slate-300 hover:border-white/20 hover:text-white"
+                      : "border border-slate-200 bg-white text-slate-600 shadow-sm hover:border-slate-300 hover:text-slate-950"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
-              {projects.map((project, index) => (
+              {filteredProjects.map((project, index) => (
                 <motion.article
                   key={project.id}
                   variants={revealVariant}
@@ -559,7 +590,13 @@ export default function App() {
                       </div>
                     </div>
                     <p className={`mt-5 text-sm leading-7 ${dark ? "text-slate-300" : "text-slate-600"}`}>{project.description}</p>
-                    <div className="mt-6 flex flex-wrap gap-2">
+                    {project.metric ? (
+                      <div className={`mt-4 flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold ${dark ? "border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-300" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                        <span className="truncate">{project.metric}</span>
+                      </div>
+                    ) : null}
+                    <div className="mt-5 flex flex-wrap gap-2">
                       {project.tech.slice(0, 5).map((technology) => (
                         <span key={technology} className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${dark ? "bg-black/25 text-slate-300" : "bg-slate-100 text-slate-600"}`}>{technology}</span>
                       ))}
@@ -690,6 +727,14 @@ export default function App() {
 
               <div className="space-y-9 p-6 sm:p-8">
                 <p className={`text-lg leading-8 ${dark ? "text-slate-300" : "text-slate-600"}`}>{selectedProject.description}</p>
+                {selectedProject.metric ? (
+                  <div className={`flex items-center gap-3 rounded-2xl border p-4 text-sm font-semibold ${dark ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>
+                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                      <Icon name="check" className="h-3.5 w-3.5" />
+                    </span>
+                    <span>{selectedProject.metric}</span>
+                  </div>
+                ) : null}
                 <section aria-labelledby="project-stack-title">
                   <h3 id="project-stack-title" className="text-lg font-black">Technology stack</h3>
                   <div className="mt-4 flex flex-wrap gap-2">
