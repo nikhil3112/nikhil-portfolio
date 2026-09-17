@@ -688,7 +688,7 @@ export default function App() {
             <p className={`font-black ${dark ? "text-white" : "text-slate-950"}`}>{profile.name}</p>
             <p className={`mt-1 text-sm ${dark ? "text-slate-500" : "text-slate-500"}`}>Senior Full Stack Developer • SaaS • APIs • AI Automation</p>
           </div>
-          <p className={`text-sm ${dark ? "text-slate-500" : "text-slate-500"}`}>© {new Date().getFullYear()} {profile.name}. Built with React, Tailwind CSS, and Framer Motion.</p>
+          <p className={`text-sm ${dark ? "text-slate-500" : "text-slate-500"}`}>© {new Date().getFullYear()} {profile.name} • Senior Full Stack Developer</p>
         </div>
       </footer>
 
